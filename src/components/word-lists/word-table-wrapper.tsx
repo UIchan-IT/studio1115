@@ -85,12 +85,17 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target?.result as string;
+      let text = e.target?.result as string;
       if (!text) {
         setIsImporting(false);
         return;
       }
       try {
+        // Remove BOM if present
+        if (text.charCodeAt(0) === 0xFEFF) {
+          text = text.slice(1);
+        }
+        
         const lines = text.split(/\r\n|\n/);
         const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
         const wordIndex = headers.indexOf('word');
