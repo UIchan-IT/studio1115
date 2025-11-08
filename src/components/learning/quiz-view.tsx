@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, X, RotateCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useFirestore } from "@/firebase";
+import { updateWordStats } from "@/lib/firestore";
+import { useParams } from "next/navigation";
 
 type QuizQuestion = {
   questionWord: Word;
@@ -40,6 +43,9 @@ export default function QuizView({ words }: { words: Word[] }) {
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const firestore = useFirestore();
+  const params = useParams();
+  const listId = params.listId as string;
 
   useEffect(() => {
     const quizSize = Math.min(words.length, 10);
@@ -56,9 +62,14 @@ export default function QuizView({ words }: { words: Word[] }) {
 
   const handleAnswerSelect = (answerId: string) => {
     if (isAnswered) return;
+    const isCorrect = answerId === currentQuestion.correctAnswerId;
+    
     setSelectedAnswerId(answerId);
     setIsAnswered(true);
-    if (answerId === currentQuestion.correctAnswerId) {
+    
+    updateWordStats(firestore, listId, currentQuestion.questionWord.id, isCorrect);
+    
+    if (isCorrect) {
       setScore(score + 1);
     }
   };
@@ -130,6 +141,7 @@ export default function QuizView({ words }: { words: Word[] }) {
                     isAnswered && isSelected && !isCorrect && "bg-red-100 border-red-500 text-red-800 hover:bg-red-200"
                   )}
                   onClick={() => handleAnswerSelect(option.id)}
+                  disabled={isAnswered}
                 >
                   {option.definition}
                 </Button>

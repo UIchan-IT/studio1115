@@ -7,6 +7,8 @@ import {
   writeBatch,
   doc,
   deleteDoc,
+  updateDoc,
+  increment,
   type Firestore,
 } from "firebase/firestore";
 
@@ -58,4 +60,15 @@ export const deleteWords = async (db: Firestore, listId: string, wordIds: string
         batch.delete(docRef);
     });
     return batch.commit();
+}
+
+export const updateWordStats = async (db: Firestore, listId: string, wordId: string, known: boolean) => {
+    const wordRef = doc(db, "wordLists", listId, "words", wordId);
+    const updates: any = {
+        lastReviewed: serverTimestamp(),
+    };
+    if (!known) {
+        updates.mistakeCount = increment(1);
+    }
+    return updateDoc(wordRef, updates);
 }

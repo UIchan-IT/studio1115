@@ -8,12 +8,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Check, X, RotateCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useFirestore } from "@/firebase";
+import { updateWordStats } from "@/lib/firestore";
+import { useParams } from "next/navigation";
 
 export default function FlashcardView({ words }: { words: Word[] }) {
   const [shuffledWords, setShuffledWords] = useState<Word[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const firestore = useFirestore();
+  const params = useParams();
+  const listId = params.listId as string;
   
   useEffect(() => {
     // Shuffle words on component mount
@@ -36,8 +42,9 @@ export default function FlashcardView({ words }: { words: Word[] }) {
   }, [currentIndex, shuffledWords]);
 
   const handleNext = (isKnown: boolean) => {
-    // In a real SRS, you'd update the word's mastery level here
-    console.log(`Word "${currentWord?.text}" was ${isKnown ? 'known' : 'unknown'}`);
+    if (currentWord) {
+      updateWordStats(firestore, listId, currentWord.id, isKnown);
+    }
     
     if (currentIndex < shuffledWords.length - 1) {
       setCurrentIndex(currentIndex + 1);
