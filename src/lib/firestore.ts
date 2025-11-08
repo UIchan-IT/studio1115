@@ -11,12 +11,14 @@ import {
   increment,
   type Firestore,
 } from "firebase/firestore";
+import type { Word, WordList } from "./definitions";
 
 // WordList functions
 export const createWordList = async (db: Firestore, list: {
   name: string;
   description: string;
   ownerId: string;
+  isPublic: boolean;
 }) => {
   return addDoc(collection(db, "wordLists"), {
     ...list,

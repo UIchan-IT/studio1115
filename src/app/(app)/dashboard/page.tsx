@@ -31,19 +31,37 @@ export default function DashboardPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   
-  const { data: wordListsData, loading: listsLoading } = useCollection<WordList>(
+  const { data: myWordListsData, loading: myListsLoading } = useCollection<WordList>(
     "wordLists",
     user ? { whereClauses: [["ownerId", "==", user.uid]] } : { skip: true }
+  );
+  
+  const { data: publicWordListsData, loading: publicListsLoading } = useCollection<WordList>(
+    "wordLists",
+    { whereClauses: [["isPublic", "==", true]] }
   );
 
   const [wordListsWithWords, setWordListsWithWords] = useState<WordListWithWords[]>([]);
   const [wordsLoading, setWordsLoading] = useState(true);
+  
+  const allWordLists = useMemo(() => {
+    const combined = [...myWordListsData];
+    const myIds = new Set(myWordListsData.map(l => l.id));
+    publicWordListsData.forEach(publicList => {
+      if (!myIds.has(publicList.id)) {
+        combined.push(publicList);
+      }
+    });
+    return combined;
+  }, [myWordListsData, publicWordListsData]);
+
 
   useEffect(() => {
-    if (wordListsData.length > 0) {
+    const listsLoading = myListsLoading || publicListsLoading;
+    if (allWordLists.length > 0) {
       const fetchAllWords = async () => {
         setWordsLoading(true);
-        const listsWithWords = await Promise.all(wordListsData.map(async (list) => {
+        const listsWithWords = await Promise.all(allWordLists.map(async (list) => {
           const wordsSnapshot = await getDocs(collection(firestore, "wordLists", list.id, "words"));
           const words = wordsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Word));
           return { ...list, words };
@@ -56,14 +74,16 @@ export default function DashboardPage() {
       setWordListsWithWords([]);
       setWordsLoading(false);
     }
-  }, [wordListsData, firestore, listsLoading]);
+  }, [allWordLists, firestore, myListsLoading, publicListsLoading]);
 
 
   const stats = useMemo(() => {
-    return calculateStats(wordListsWithWords);
-  }, [wordListsWithWords]);
+    // Only calculate stats for the user's own lists
+    const myListsWithWords = wordListsWithWords.filter(l => l.ownerId === user?.uid);
+    return calculateStats(myListsWithWords);
+  }, [wordListsWithWords, user]);
   
-  const isLoading = userLoading || listsLoading || wordsLoading;
+  const isLoading = userLoading || myListsLoading || publicListsLoading || wordsLoading;
 
   if (isLoading) {
     return (

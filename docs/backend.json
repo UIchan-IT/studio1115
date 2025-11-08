@@ -43,6 +43,10 @@
         "ownerId": {
           "type": "string",
           "description": "The UID of the user who owns this list."
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Whether the word list is public and accessible to all users."
         }
       },
       "required": ["name", "createdAt", "ownerId"]
@@ -102,7 +106,7 @@
       "schema": {
         "$ref": "#/entities/WordList"
       },
-      "description": "Top-level collection of all word lists, queryable by ownerId."
+      "description": "Top-level collection of all word lists, queryable by ownerId or isPublic."
     },
     "/wordLists/{wordListId}/words/{wordId}": {
       "schema": {

@@ -18,6 +18,7 @@ export const WordListSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   ownerId: z.string(),
+  isPublic: z.boolean().optional(),
   createdAt: z.any().optional(), // Allow server timestamp
 });
 

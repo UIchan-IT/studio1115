@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PlusCircle, List, BookOpen } from "lucide-react";
+import { PlusCircle, List, BookOpen, Globe } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { WordList, Word } from "@/lib/definitions";
 import { createWordList } from "@/lib/firestore";
 import { useUser, useFirestore } from "@/firebase";
@@ -42,6 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   name: z.string().min(1, { message: "List name is required." }),
   description: z.string().optional(),
+  isPublic: z.boolean().default(false),
 });
 
 export default function WordLists({
@@ -60,6 +62,7 @@ export default function WordLists({
     defaultValues: {
       name: "",
       description: "",
+      isPublic: false,
     },
   });
 
@@ -78,6 +81,7 @@ export default function WordLists({
         name: values.name,
         description: values.description || "",
         ownerId: user.uid,
+        isPublic: values.isPublic,
       });
       toast({
         title: "List Created",
@@ -142,6 +146,28 @@ export default function WordLists({
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="isPublic"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Make this list public
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Anyone will be able to view and use this list.
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
                <DialogFooter>
                 <Button type="submit" disabled={isCreating}>
                   {isCreating ? "Creating..." : "Create List"}
@@ -150,41 +176,45 @@ export default function WordLists({
             </form>
           </Form>
         </DialogContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {initialWordLists.map((list) => (
-            <Card key={list.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <List className="h-5 w-5 text-primary" /> {list.name}
-                </CardTitle>
-                <CardDescription>{list.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <div className="text-sm text-muted-foreground">
-                  <BookOpen className="inline-block mr-2 h-4 w-4" />
-                  {list.words?.length || 0} words
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button asChild className="w-full">
-                  <Link href={`/lists/${list.id}`}>Open List</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-          {initialWordLists.length === 0 && (
-            <Card className="md:col-span-3 flex flex-col items-center justify-center text-center p-8 border-2 border-dashed">
-              <p className="text-lg font-medium">No word lists yet!</p>
-              <p className="text-muted-foreground">Get started by creating your first list.</p>
-               <DialogTrigger asChild>
-                  <Button className="mt-4">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create a List
+        {initialWordLists.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {initialWordLists.map((list) => (
+              <Card key={list.id} className="flex flex-col">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                     {list.isPublic ? <Globe className="h-5 w-5 text-accent" /> : <List className="h-5 w-5 text-primary" />}
+                     {list.name}
+                    </span>
+                  </CardTitle>
+                  <CardDescription>{list.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <div className="text-sm text-muted-foreground">
+                    <BookOpen className="inline-block mr-2 h-4 w-4" />
+                    {list.words?.length || 0} words
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button asChild className="w-full">
+                    <Link href={`/lists/${list.id}`}>Open List</Link>
                   </Button>
-               </DialogTrigger>
-            </Card>
-          )}
-        </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="md:col-span-3 flex flex-col items-center justify-center text-center p-8 border-2 border-dashed">
+            <p className="text-lg font-medium">No word lists yet!</p>
+            <p className="text-muted-foreground">Get started by creating your first list.</p>
+            <DialogTrigger asChild>
+                <Button className="mt-4">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create a List
+                </Button>
+            </DialogTrigger>
+          </Card>
+        )}
       </section>
     </Dialog>
   );
