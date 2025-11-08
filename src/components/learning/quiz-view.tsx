@@ -1,0 +1,150 @@
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import type { Word } from "@/lib/definitions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Check, X, RotateCw } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+
+type QuizQuestion = {
+  questionWord: Word;
+  options: Word[];
+  correctAnswerId: string;
+};
+
+function generateQuiz(words: Word[], count: number): QuizQuestion[] {
+  const shuffled = [...words].sort(() => 0.5 - Math.random());
+  const selectedWords = shuffled.slice(0, count);
+
+  return selectedWords.map((correctWord) => {
+    const otherOptions = shuffled
+      .filter((w) => w.id !== correctWord.id)
+      .slice(0, 3);
+    const options = [correctWord, ...otherOptions].sort(
+      () => 0.5 - Math.random()
+    );
+    return {
+      questionWord: correctWord,
+      options,
+      correctAnswerId: correctWord.id,
+    };
+  });
+}
+
+export default function QuizView({ words }: { words: Word[] }) {
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [score, setScore] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    const quizSize = Math.min(words.length, 10);
+    setQuizQuestions(generateQuiz(words, quizSize));
+    setCurrentQuestionIndex(0);
+    setSelectedAnswerId(null);
+    setIsAnswered(false);
+    setScore(0);
+    setIsComplete(false);
+  }, [words]);
+  
+  const currentQuestion = quizQuestions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex) / quizQuestions.length) * 100;
+
+  const handleAnswerSelect = (answerId: string) => {
+    if (isAnswered) return;
+    setSelectedAnswerId(answerId);
+    setIsAnswered(true);
+    if (answerId === currentQuestion.correctAnswerId) {
+      setScore(score + 1);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < quizQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswerId(null);
+      setIsAnswered(false);
+    } else {
+      setIsComplete(true);
+    }
+  };
+  
+  const handleRestart = () => {
+    const quizSize = Math.min(words.length, 10);
+    setQuizQuestions(generateQuiz(words, quizSize));
+    setCurrentQuestionIndex(0);
+    setSelectedAnswerId(null);
+    setIsAnswered(false);
+    setScore(0);
+    setIsComplete(false);
+  }
+
+  if (isComplete) {
+    return (
+        <Card className="w-full max-w-2xl text-center p-8">
+            <CardContent className="flex flex-col items-center gap-4">
+                <Check className="h-16 w-16 text-green-500 bg-green-100 rounded-full p-2" />
+                <h2 className="text-2xl font-bold font-headline">Quiz Complete!</h2>
+                <p className="text-muted-foreground text-xl">Your score:</p>
+                <p className="text-4xl font-bold">{score} / {quizQuestions.length}</p>
+                <Button onClick={handleRestart} className="mt-4">
+                    <RotateCw className="mr-2 h-4 w-4" />
+                    Take Quiz Again
+                </Button>
+            </CardContent>
+        </Card>
+    );
+  }
+
+  if (!currentQuestion) {
+    return <div>Loading quiz...</div>;
+  }
+
+  return (
+    <div className="w-full max-w-2xl">
+      <div className="mb-4 space-y-2">
+        <Progress value={progress} />
+        <p className="text-sm text-muted-foreground text-center">Question {currentQuestionIndex + 1} of {quizQuestions.length}</p>
+      </div>
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-center text-muted-foreground mb-2">What is the definition of:</p>
+          <h2 className="text-center text-3xl font-bold font-headline mb-6">
+            {currentQuestion.questionWord.text}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {currentQuestion.options.map((option) => {
+              const isCorrect = option.id === currentQuestion.correctAnswerId;
+              const isSelected = option.id === selectedAnswerId;
+              return (
+                <Button
+                  key={option.id}
+                  variant="outline"
+                  className={cn(
+                    "h-auto py-4 whitespace-normal justify-start text-left",
+                    isAnswered && isCorrect && "bg-green-100 border-green-500 text-green-800 hover:bg-green-200",
+                    isAnswered && isSelected && !isCorrect && "bg-red-100 border-red-500 text-red-800 hover:bg-red-200"
+                  )}
+                  onClick={() => handleAnswerSelect(option.id)}
+                >
+                  {option.definition}
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+      {isAnswered && (
+        <div className="text-center mt-6">
+             <Button size="lg" onClick={handleNextQuestion}>
+                {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+             </Button>
+        </div>
+      )}
+    </div>
+  );
+}
