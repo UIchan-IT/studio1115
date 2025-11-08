@@ -1,6 +1,6 @@
 import AppSidebar from "@/components/layout/sidebar";
 import AppHeader from "@/components/layout/header";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/hooks/use-sidebar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (

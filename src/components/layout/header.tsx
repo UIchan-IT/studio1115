@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import AppSidebar from "./sidebar";
 import { UserNav } from "./user-nav";
+import { useSidebar } from "@/hooks/use-sidebar";
+
 
 export default function AppHeader() {
+  const { setSidebarOpen } = useSidebar();
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-       <Sheet>
+       <Sheet onOpenChange={setSidebarOpen}>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
             <Menu className="h-5 w-5" />

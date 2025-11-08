@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { FileUp, PlusCircle, Trash2 } from "lucide-react";
 import type { Word, WordList } from "@/lib/definitions";
 import WordTable from "./word-table";
-import ExampleSentences from "./example-sentences";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 
 export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
   const [words, setWords] = useState<Word[]>(wordList.words);
