@@ -60,6 +60,16 @@ export default function QuizView({ words }: { words: Word[] }) {
   const currentQuestion = quizQuestions[currentQuestionIndex];
   const progress = ((currentQuestionIndex) / quizQuestions.length) * 100;
 
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < quizQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswerId(null);
+      setIsAnswered(false);
+    } else {
+      setIsComplete(true);
+    }
+  };
+
   const handleAnswerSelect = (answerId: string) => {
     if (isAnswered) return;
     const isCorrect = answerId === currentQuestion.correctAnswerId;
@@ -72,16 +82,10 @@ export default function QuizView({ words }: { words: Word[] }) {
     if (isCorrect) {
       setScore(score + 1);
     }
-  };
 
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < quizQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setSelectedAnswerId(null);
-      setIsAnswered(false);
-    } else {
-      setIsComplete(true);
-    }
+    setTimeout(() => {
+        handleNextQuestion();
+    }, 1500);
   };
   
   const handleRestart = () => {
@@ -151,10 +155,18 @@ export default function QuizView({ words }: { words: Word[] }) {
         </CardContent>
       </Card>
       {isAnswered && (
-        <div className="text-center mt-6">
-             <Button size="lg" onClick={handleNextQuestion}>
-                {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Question' : 'Finish Quiz'}
-             </Button>
+         <div className="text-center mt-6 h-10">
+            {selectedAnswerId === currentQuestion.correctAnswerId ? (
+                <div className="flex items-center justify-center gap-2 text-green-600">
+                    <Check className="h-5 w-5" />
+                    <span className="font-medium">Correct!</span>
+                </div>
+            ) : (
+                <div className="flex items-center justify-center gap-2 text-destructive">
+                    <X className="h-5 w-5" />
+                    <span className="font-medium">Incorrect.</span>
+                </div>
+            )}
         </div>
       )}
     </div>
