@@ -92,7 +92,7 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
       }
       try {
         const lines = text.split(/\r\n|\n/);
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
         const wordIndex = headers.indexOf('word');
         const definitionIndex = headers.indexOf('definition');
 
