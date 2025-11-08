@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { LexicalLeapLogo } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
@@ -38,6 +39,7 @@ const formSchema = z.object({
 export default function SignupPage() {
   const router = useRouter();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -50,7 +52,16 @@ export default function SignupPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
+      // Create a user profile in Firestore
+      await setDoc(doc(firestore, "users", user.uid), {
+        email: user.email,
+        displayName: user.displayName,
+        createdAt: serverTimestamp(),
+      });
+      
       toast({
         title: "Account Created",
         description: "Redirecting to your dashboard...",

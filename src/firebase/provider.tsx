@@ -12,25 +12,29 @@ let auth: Auth;
 let firestore: Firestore;
 
 export function initializeFirebase() {
-  if (typeof window !== 'undefined' && !getApps().length) {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    firestore = getFirestore(app);
-  } else if (getApps().length) {
-    app = getApp();
-    auth = getAuth(app);
-    firestore = getFirestore(app);
-  }
-
-  // On the server, we need to initialize the app every time.
-  if (typeof window === 'undefined') {
-    const serverApp = initializeApp(firebaseConfig, `server-${Date.now()}`);
+  if (typeof window !== 'undefined') {
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      firestore = getFirestore(app);
+    } else {
+      app = getApp();
+      auth = getAuth(app);
+      firestore = getFirestore(app);
+    }
+  } else {
+    // On the server, we might need a different initialization strategy
+    // to avoid re-initializing on every request. For now, we create a new instance.
+    // A more robust solution might involve a singleton pattern for the server.
+    const appName = `server-${Date.now()}`;
+    const serverApp = getApps().find(a => a.name === appName) || initializeApp(firebaseConfig, appName);
     return {
       app: serverApp,
       auth: getAuth(serverApp),
       firestore: getFirestore(serverApp),
-    }
+    };
   }
+
 
   return { app, auth, firestore };
 }

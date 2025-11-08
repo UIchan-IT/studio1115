@@ -1,17 +1,38 @@
-import { getWordListById } from "@/lib/data";
-import { notFound } from "next/navigation";
+"use client";
+
+import { useDoc, useCollection } from "@/firebase";
+import type { Word, WordList } from "@/lib/definitions";
+import { notFound, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import FlashcardView from "@/components/learning/flashcard-view";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default async function FlashcardsPage({
-  params,
-}: {
-  params: { listId: string };
-}) {
-  const wordList = await getWordListById(params.listId);
+export default function FlashcardsPage() {
+  const params = useParams();
+  const listId = params.listId as string;
+
+  const { data: wordList, loading: listLoading } = useDoc<WordList>("wordLists", listId);
+  const { data: words, loading: wordsLoading } = useCollection<Word>(`wordLists/${listId}/words`);
+
+  const isLoading = listLoading || wordsLoading;
+
+  if (isLoading) {
+     return (
+       <div className="container mx-auto h-full flex flex-col">
+         <header className="mb-8">
+           <Skeleton className="h-8 w-48 mb-4" />
+           <Skeleton className="h-10 w-64 mb-2" />
+           <Skeleton className="h-5 w-96" />
+         </header>
+         <div className="flex-grow flex items-center justify-center">
+            <Skeleton className="w-full max-w-2xl h-96" />
+         </div>
+       </div>
+     );
+  }
 
   if (!wordList) {
     notFound();
@@ -21,7 +42,7 @@ export default async function FlashcardsPage({
     <div className="container mx-auto h-full flex flex-col">
        <header className="mb-8">
           <Button asChild variant="ghost" className="-ml-4">
-            <Link href={`/lists/${params.listId}`}>
+            <Link href={`/lists/${listId}`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to {wordList.name}
             </Link>
@@ -30,7 +51,7 @@ export default async function FlashcardsPage({
           <p className="text-muted-foreground">Review words from your list: <span className="font-semibold text-foreground">{wordList.name}</span></p>
         </header>
       <div className="flex-grow flex items-center justify-center">
-        <FlashcardView words={wordList.words} />
+        <FlashcardView words={words} />
       </div>
     </div>
   );

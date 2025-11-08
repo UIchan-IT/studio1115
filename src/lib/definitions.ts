@@ -4,10 +4,10 @@ export const WordSchema = z.object({
   id: z.string(),
   text: z.string(),
   definition: z.string(),
-  exampleSentences: z.array(z.string()),
-  masteryLevel: z.number().min(0).max(5), // SRS level
-  lastReviewed: z.string().datetime().nullable(),
-  mistakeCount: z.number().default(0),
+  exampleSentences: z.array(z.string()).optional(),
+  masteryLevel: z.number().min(0).max(5).default(0).optional(),
+  lastReviewed: z.string().datetime().nullable().optional(),
+  mistakeCount: z.number().default(0).optional(),
 });
 
 export type Word = z.infer<typeof WordSchema>;
@@ -16,7 +16,8 @@ export const WordListSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  words: z.array(WordSchema),
+  ownerId: z.string(),
+  createdAt: z.any().optional(), // Allow server timestamp
 });
 
 export type WordList = z.infer<typeof WordListSchema>;

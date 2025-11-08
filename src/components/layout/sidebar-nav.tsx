@@ -13,7 +13,14 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import type { WordList } from "@/lib/definitions";
-import { useSidebar } from "@/hooks/use-sidebar";
+import { useSidebar } from "@/hooks/use-sidebar.tsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordList[], isMobile: boolean }) {
   const pathname = usePathname();
@@ -57,9 +64,9 @@ export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordLis
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Word Lists
                 </h3>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <PlusCircle className="h-4 w-4" />
-                </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <PlusCircle className="h-4 w-4" />
+                  </Button>
               </div>
               {wordLists.map((list) => (
                 <Link
@@ -71,7 +78,7 @@ export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordLis
                   )}
                 >
                   <List className="h-4 w-4" />
-                  {list.name}
+                  <span className="truncate">{list.name}</span>
                 </Link>
               ))}
             </div>

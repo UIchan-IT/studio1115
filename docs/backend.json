@@ -1,5 +1,27 @@
 {
   "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile information.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the user profile was created."
+        }
+      },
+      "required": ["email", "createdAt"]
+    },
     "WordList": {
       "title": "Word List",
       "description": "A collection of words for a user to study.",
@@ -17,9 +39,13 @@
           "type": "string",
           "format": "date-time",
           "description": "The date and time the word list was created."
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "The UID of the user who owns this list."
         }
       },
-      "required": ["name", "createdAt"]
+      "required": ["name", "createdAt", "ownerId"]
     },
     "Word": {
       "title": "Word",
@@ -62,11 +88,17 @@
     "providers": ["email"]
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Stores user profile information."
+    },
     "/wordLists/{wordListId}": {
       "schema": {
         "$ref": "#/entities/WordList"
       },
-      "description": "Top-level collection of all word lists."
+      "description": "Top-level collection of all word lists, queryable by ownerId."
     },
     "/wordLists/{wordListId}/words/{wordId}": {
       "schema": {

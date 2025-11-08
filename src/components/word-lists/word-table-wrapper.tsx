@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { FileUp, PlusCircle, Trash2 } from "lucide-react";
+import { FileUp, PlusCircle, Trash2, Loader2 } from "lucide-react";
 import type { Word, WordList } from "@/lib/definitions";
 import WordTable from "./word-table";
 import {
@@ -12,54 +12,61 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { addWord, addWords, deleteWords } from "@/lib/firestore";
+import { useFirestore } from "@/firebase";
 
-export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
-  const [words, setWords] = useState<Word[]>(wordList.words);
+export default function WordTableWrapper({ wordList }: { wordList: WordList & { words: Word[] } }) {
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
   const [isImporting, setIsImporting] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const [addWordOpen, setAddWordOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const newWordRef = useRef<HTMLInputElement>(null);
   const newDefinitionRef = useRef<HTMLInputElement>(null);
-  const addWordDialogCloseRef = useRef<HTMLButtonElement>(null);
-  const importDialogCloseRef = useRef<HTMLButtonElement>(null);
-  
+
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const numSelected = Object.values(selectedRows).filter(Boolean).length;
 
-  const handleAddWord = () => {
+  const handleAddWord = async () => {
     setIsAdding(true);
     const newWordText = newWordRef.current?.value;
     const newDefinitionText = newDefinitionRef.current?.value;
 
     if (newWordText && newDefinitionText) {
-      const newWord: Word = {
-        id: `word-${Date.now()}`,
-        text: newWordText,
-        definition: newDefinitionText,
-        exampleSentences: [],
-        masteryLevel: 0,
-        lastReviewed: null,
-        mistakeCount: 0,
-      };
-      setWords(prev => [newWord, ...prev]);
+      try {
+        await addWord(firestore, wordList.id, {
+          text: newWordText,
+          definition: newDefinitionText,
+        });
 
-      if(newWordRef.current) newWordRef.current.value = "";
-      if(newDefinitionRef.current) newDefinitionRef.current.value = "";
+        if(newWordRef.current) newWordRef.current.value = "";
+        if(newDefinitionRef.current) newDefinitionRef.current.value = "";
 
-      toast({
-        title: "Word Added",
-        description: `"${newWordText}" has been added to the list.`,
-      });
-      
-      addWordDialogCloseRef.current?.click();
+        toast({
+          title: "Word Added",
+          description: `"${newWordText}" has been added to the list.`,
+        });
+        
+        setAddWordOpen(false);
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not add the word.",
+        });
+      }
     } else {
        toast({
         variant: "destructive",
@@ -84,7 +91,7 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       let text = e.target?.result as string;
       if (!text) {
         setIsImporting(false);
@@ -105,32 +112,29 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
           throw new Error("CSV must have 'word' and 'definition' columns.");
         }
 
-        const newWords: Word[] = [];
+        const wordsToImport: { text: string; definition: string }[] = [];
         for (let i = 1; i < lines.length; i++) {
           if(!lines[i]) continue;
+          // Basic CSV parsing, may need to be more robust for complex CSVs
           const data = lines[i].split(',');
-          const wordText = data[wordIndex]?.trim();
-          const definitionText = data[definitionIndex]?.trim();
+          const wordText = data[wordIndex]?.trim().replace(/"/g, '');
+          const definitionText = data[definitionIndex]?.trim().replace(/"/g, '');
 
           if (wordText && definitionText) {
-            newWords.push({
-              id: `word-imported-${Date.now()}-${i}`,
-              text: wordText.replace(/"/g, ''),
-              definition: definitionText.replace(/"/g, ''),
-              exampleSentences: [],
-              masteryLevel: 0,
-              lastReviewed: null,
-              mistakeCount: 0,
+            wordsToImport.push({
+              text: wordText,
+              definition: definitionText,
             });
           }
         }
         
-        setWords(prev => [...newWords, ...prev]);
+        await addWords(firestore, wordList.id, wordsToImport);
+
         toast({
           title: "Import Successful",
-          description: `${newWords.length} words have been imported.`,
+          description: `${wordsToImport.length} words have been imported.`,
         });
-        importDialogCloseRef.current?.click();
+        setImportOpen(false);
       } catch (error: any) {
         toast({
           variant: "destructive",
@@ -152,20 +156,31 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
     reader.readAsText(file);
   };
 
-  const handleDeleteSelected = () => {
-    const remainingWords = words.filter((word) => !selectedRows[word.id]);
-    setWords(remainingWords);
-    toast({
-      title: "Words Deleted",
-      description: `${numSelected} words have been deleted.`,
-    });
-    setSelectedRows({});
+  const handleDeleteSelected = async () => {
+    setIsDeleting(true);
+    const wordIdsToDelete = Object.keys(selectedRows).filter(id => selectedRows[id]);
+    try {
+        await deleteWords(firestore, wordList.id, wordIdsToDelete);
+        toast({
+            title: "Words Deleted",
+            description: `${numSelected} words have been deleted.`,
+        });
+        setSelectedRows({});
+    } catch(error) {
+         toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not delete the selected words.",
+        });
+    } finally {
+        setIsDeleting(false);
+    }
   };
 
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <Dialog>
+        <Dialog open={addWordOpen} onOpenChange={setAddWordOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -186,14 +201,15 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
                 <Input id="definition" ref={newDefinitionRef} className="col-span-3" />
               </div>
             </div>
+            <DialogFooter>
              <Button onClick={handleAddWord} disabled={isAdding}>
-                {isAdding ? 'Adding...' : 'Add Word'}
+                {isAdding ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Adding...</> : 'Add Word'}
              </Button>
-             <DialogClose ref={addWordDialogCloseRef} className="hidden"/>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        <Dialog>
+        <Dialog open={importOpen} onOpenChange={setImportOpen}>
           <DialogTrigger asChild>
             <Button variant="outline">
               <FileUp className="mr-2 h-4 w-4" />
@@ -206,16 +222,17 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
             </DialogHeader>
             <p className="text-sm text-muted-foreground">Select a CSV file with 'word' and 'definition' columns.</p>
             <Input type="file" accept=".csv" ref={fileInputRef} />
+            <DialogFooter>
             <Button onClick={handleImport} disabled={isImporting}>
-              {isImporting ? 'Importing...' : 'Import'}
+              {isImporting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Importing...</> : 'Import'}
             </Button>
-            <DialogClose ref={importDialogCloseRef} className="hidden"/>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
         
         {numSelected > 0 && (
-          <Button variant="destructive" onClick={handleDeleteSelected}>
-            <Trash2 className="mr-2 h-4 w-4" />
+          <Button variant="destructive" onClick={handleDeleteSelected} disabled={isDeleting}>
+             {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4" />}
             Delete ({numSelected})
           </Button>
         )}
@@ -223,7 +240,7 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList }) {
 
       <Card className="border shadow-sm rounded-lg">
         <WordTable
-          words={words}
+          words={wordList.words}
           selectedRows={selectedRows}
           setSelectedRows={setSelectedRows}
         />

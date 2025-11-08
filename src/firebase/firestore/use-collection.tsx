@@ -14,6 +14,7 @@ import { useFirestore } from '../provider';
 
 interface UseCollectionOptions {
   whereClauses?: [string, '==', any][];
+  skip?: boolean;
 }
 
 export function useCollection<T extends DocumentData>(
@@ -25,20 +26,29 @@ export function useCollection<T extends DocumentData>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const { whereClauses } = options;
+  const { whereClauses, skip } = options;
 
   const memoizedQuery = useMemo(() => {
+    if (skip) return null;
     let q: Query<DocumentData, DocumentData> = collection(firestore, collectionName);
     if (whereClauses) {
       whereClauses.forEach(([field, op, value]) => {
-        q = query(q, where(field, op, value));
+        if(value !== undefined) {
+          q = query(q, where(field, op, value));
+        }
       });
     }
     return q;
-  }, [firestore, collectionName, JSON.stringify(whereClauses)]);
+  }, [firestore, collectionName, JSON.stringify(whereClauses), skip]);
 
 
   useEffect(() => {
+    if (!memoizedQuery) {
+      setData([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     const unsubscribe = onSnapshot(
