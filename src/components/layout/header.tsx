@@ -19,7 +19,7 @@ export default function AppHeader() {
             <span className="sr-only">Toggle Menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="sm:max-w-xs p-0">
+        <SheetContent side="left" className="sm:max-w-xs p-0 w-64">
           <AppSidebar isMobile={true} />
         </SheetContent>
       </Sheet>

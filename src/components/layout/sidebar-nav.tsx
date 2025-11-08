@@ -19,24 +19,13 @@ export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordLis
   const pathname = usePathname();
   const { isSidebarOpen } = useSidebar();
 
-  const mainNav = [
-    {
-      href: "/dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-    },
-  ];
-
   const sidebarClasses = cn(
-    "fixed left-0 top-0 z-40 h-screen w-64 border-r bg-background transition-transform",
-    isMobile ? "" : "sm:translate-x-0",
-    isMobile 
-      ? (isSidebarOpen ? "translate-x-0" : "-translate-x-full") 
-      : "-translate-x-full"
+    "fixed top-0 left-0 z-40 w-64 h-screen border-r bg-background transition-transform -translate-x-full sm:translate-x-0",
+    isMobile && (isSidebarOpen ? "translate-x-0" : "-translate-x-full"),
   );
 
   return (
-    <aside className={sidebarClasses}>
+    <aside className={cn(sidebarClasses, isMobile && "w-full")}>
       <div className="flex h-full flex-col">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/dashboard" className="flex items-center gap-2 font-semibold font-headline">
@@ -92,3 +81,11 @@ export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordLis
     </aside>
   );
 }
+
+const mainNav = [
+    {
+      href: "/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
+  ];
