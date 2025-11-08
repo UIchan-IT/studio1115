@@ -32,6 +32,7 @@ export const addWord = async (db: Firestore, listId: string, word: { text: strin
         masteryLevel: 0,
         lastReviewed: null,
         mistakeCount: 0,
+        testCount: 0,
     });
 }
 
@@ -47,6 +48,7 @@ export const addWords = async (db: Firestore, listId: string, words: { text: str
             masteryLevel: 0,
             lastReviewed: null,
             mistakeCount: 0,
+            testCount: 0,
         });
     });
 
@@ -62,13 +64,18 @@ export const deleteWords = async (db: Firestore, listId: string, wordIds: string
     return batch.commit();
 }
 
-export const updateWordStats = async (db: Firestore, listId: string, wordId: string, known: boolean) => {
+export const updateWordStats = async (db: Firestore, listId: string, wordId: string, isCorrect: boolean) => {
     const wordRef = doc(db, "wordLists", listId, "words", wordId);
+    
     const updates: any = {
         lastReviewed: serverTimestamp(),
+        testCount: increment(1),
     };
-    if (!known) {
+
+    if (!isCorrect) {
         updates.mistakeCount = increment(1);
     }
+    // Logic for masteryLevel can be added here if needed
+
     return updateDoc(wordRef, updates);
 }

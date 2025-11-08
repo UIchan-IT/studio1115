@@ -41,9 +41,9 @@ export default function FlashcardView({ words }: { words: Word[] }) {
     return ((currentIndex) / shuffledWords.length) * 100;
   }, [currentIndex, shuffledWords]);
 
-  const handleNext = (isKnown: boolean) => {
+  const handleNext = (isCorrect: boolean) => {
     if (currentWord) {
-      updateWordStats(firestore, listId, currentWord.id, isKnown);
+      updateWordStats(firestore, listId, currentWord.id, isCorrect);
     }
     
     if (currentIndex < shuffledWords.length - 1) {

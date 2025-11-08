@@ -8,6 +8,7 @@ export const WordSchema = z.object({
   masteryLevel: z.number().min(0).max(5).default(0).optional(),
   lastReviewed: z.string().datetime().nullable().optional(),
   mistakeCount: z.number().default(0).optional(),
+  testCount: z.number().default(0).optional(),
 });
 
 export type Word = z.infer<typeof WordSchema>;

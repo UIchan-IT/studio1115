@@ -79,6 +79,10 @@
         "mistakeCount": {
           "type": "number",
           "description": "How many times the user has made a mistake on this word."
+        },
+        "testCount": {
+            "type": "number",
+            "description": "How many times the user has been tested on this word."
         }
       },
       "required": ["text", "definition"]

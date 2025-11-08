@@ -57,6 +57,7 @@ export default function WordTable({
           <TableHead className="w-[200px]">Word</TableHead>
           <TableHead>Definition</TableHead>
           <TableHead className="w-[150px] text-center">Mistakes</TableHead>
+          <TableHead className="w-[150px] text-center">Test Count</TableHead>
           <TableHead className="w-[150px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -79,7 +80,10 @@ export default function WordTable({
               <TableCell className="font-medium">{word.text}</TableCell>
               <TableCell>{word.definition}</TableCell>
               <TableCell className="text-center">
-                {word.mistakeCount}
+                {word.mistakeCount ?? 0}
+              </TableCell>
+              <TableCell className="text-center">
+                {word.testCount ?? 0}
               </TableCell>
               <TableCell className="text-right">
                 <ExampleSentences word={word.text} />
@@ -88,7 +92,7 @@ export default function WordTable({
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center">
+            <TableCell colSpan={6} className="h-24 text-center">
               No words in this list yet.
             </TableCell>
           </TableRow>
