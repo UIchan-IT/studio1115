@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { Word } from "@/lib/definitions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, X, RotateCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useFirestore } from "@/firebase";
-import { updateWordStats } from "@/lib/firestore";
+import { useFirestore, useUser } from "@/firebase";
+import { updateWordStats, initializeWordProgress } from "@/lib/firestore";
 import { useParams } from "next/navigation";
 
 type QuizQuestion = {
@@ -44,21 +44,38 @@ export default function QuizView({ words }: { words: Word[] }) {
   const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const firestore = useFirestore();
+  const { user } = useUser();
   const params = useParams();
   const listId = params.listId as string;
 
   useEffect(() => {
-    const quizSize = Math.min(words.length, 10);
-    setQuizQuestions(generateQuiz(words, quizSize));
+    if (words.length > 0 && user) {
+        const quizSize = Math.min(words.length, 10);
+        const questions = generateQuiz(words, quizSize);
+        setQuizQuestions(questions);
+
+        // Initialize progress for all words in the quiz
+        const wordsInQuiz = new Set<Word>();
+        questions.forEach(q => {
+            wordsInQuiz.add(q.questionWord);
+            q.options.forEach(opt => wordsInQuiz.add(opt));
+        });
+
+        wordsInQuiz.forEach(word => {
+            if (!word.progress) {
+                initializeWordProgress(firestore, user.uid, word.id);
+            }
+        });
+    }
     setCurrentQuestionIndex(0);
     setSelectedAnswerId(null);
     setIsAnswered(false);
     setScore(0);
     setIsComplete(false);
-  }, [words]);
+  }, [words, user, firestore]);
   
   const currentQuestion = quizQuestions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex) / quizQuestions.length) * 100;
+  const progress = quizQuestions.length > 0 ? ((currentQuestionIndex) / quizQuestions.length) * 100 : 0;
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < quizQuestions.length - 1) {
@@ -71,13 +88,13 @@ export default function QuizView({ words }: { words: Word[] }) {
   };
 
   const handleAnswerSelect = (answerId: string) => {
-    if (isAnswered) return;
+    if (isAnswered || !user) return;
     const isCorrect = answerId === currentQuestion.correctAnswerId;
     
     setSelectedAnswerId(answerId);
     setIsAnswered(true);
     
-    updateWordStats(firestore, listId, currentQuestion.questionWord.id, isCorrect);
+    updateWordStats(firestore, user.uid, currentQuestion.questionWord.id, isCorrect);
     
     if (isCorrect) {
       setScore(score + 1);

@@ -1,14 +1,22 @@
 import { z } from "zod";
 
+export const UserWordProgressSchema = z.object({
+  id: z.string(),
+  masteryLevel: z.number().min(0).max(5).default(0),
+  lastReviewed: z.string().datetime().nullable().optional(),
+  mistakeCount: z.number().default(0),
+  testCount: z.number().default(0),
+});
+
+export type UserWordProgress = z.infer<typeof UserWordProgressSchema>;
+
 export const WordSchema = z.object({
   id: z.string(),
   text: z.string(),
   definition: z.string(),
   exampleSentences: z.array(z.string()).optional(),
-  masteryLevel: z.number().min(0).max(5).default(0).optional(),
-  lastReviewed: z.string().datetime().nullable().optional(),
-  mistakeCount: z.number().default(0).optional(),
-  testCount: z.number().default(0).optional(),
+  // User-specific progress is now stored in a separate document.
+  progress: UserWordProgressSchema.optional(),
 });
 
 export type Word = z.infer<typeof WordSchema>;
@@ -18,7 +26,7 @@ export const WordListSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   ownerId: z.string(),
-  isPublic: z.boolean().optional(),
+  isPublic: z.boolean().default(false).optional(),
   createdAt: z.any().optional(), // Allow server timestamp
 });
 

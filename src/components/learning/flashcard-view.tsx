@@ -8,8 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Check, X, RotateCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useFirestore } from "@/firebase";
-import { updateWordStats } from "@/lib/firestore";
+import { useFirestore, useUser } from "@/firebase";
+import { updateWordStats, initializeWordProgress } from "@/lib/firestore";
 import { useParams } from "next/navigation";
 
 export default function FlashcardView({ words }: { words: Word[] }) {
@@ -18,16 +18,26 @@ export default function FlashcardView({ words }: { words: Word[] }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const firestore = useFirestore();
+  const { user } = useUser();
   const params = useParams();
   const listId = params.listId as string;
   
   useEffect(() => {
-    // Shuffle words on component mount
-    setShuffledWords([...words].sort(() => Math.random() - 0.5));
+    if (words.length > 0 && user) {
+      const wordsToReview = [...words].sort(() => Math.random() - 0.5);
+      setShuffledWords(wordsToReview);
+      
+      // Initialize progress for words that don't have it
+      wordsToReview.forEach(word => {
+        if (!word.progress) {
+          initializeWordProgress(firestore, user.uid, word.id);
+        }
+      });
+    }
     setCurrentIndex(0);
     setIsFlipped(false);
     setIsComplete(false);
-  }, [words]);
+  }, [words, user, firestore]);
 
   const currentWord = useMemo(() => {
     if (shuffledWords.length > 0 && currentIndex < shuffledWords.length) {
@@ -42,8 +52,8 @@ export default function FlashcardView({ words }: { words: Word[] }) {
   }, [currentIndex, shuffledWords]);
 
   const handleNext = (isCorrect: boolean) => {
-    if (currentWord) {
-      updateWordStats(firestore, listId, currentWord.id, isCorrect);
+    if (currentWord && user) {
+      updateWordStats(firestore, user.uid, currentWord.id, isCorrect);
     }
     
     if (currentIndex < shuffledWords.length - 1) {

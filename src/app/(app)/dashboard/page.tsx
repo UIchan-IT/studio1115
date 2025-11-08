@@ -1,7 +1,7 @@
 "use client";
 
 import { useCollection, useUser } from "@/firebase";
-import type { Stats, WordList, Word } from "@/lib/definitions";
+import type { Stats, WordList, Word, UserWordProgress } from "@/lib/definitions";
 import StatsCards from "@/components/dashboard/stats-cards";
 import WordLists from "@/components/dashboard/word-lists";
 import { useMemo } from "react";
@@ -14,14 +14,22 @@ interface WordListWithWords extends WordList {
   words: Word[];
 }
 
-function calculateStats(wordLists: WordListWithWords[]): Stats {
-  if (!wordLists) {
+function calculateStats(wordLists: WordListWithWords[], allProgress: UserWordProgress[]): Stats {
+  if (!wordLists || !allProgress) {
     return { totalWords: 0, wordsLearned: 0, needsReview: 0 };
   }
+  
   const allWords = wordLists.flatMap(list => list.words || []);
-  const totalWords = allWords.length;
-  const wordsLearned = allWords.filter(word => word.masteryLevel && word.masteryLevel >= 4).length;
-  const needsReview = allWords.filter(word => word.masteryLevel && word.masteryLevel > 0 && word.masteryLevel < 4).length;
+  const progressMap = new Map(allProgress.map(p => [p.id, p]));
+
+  const wordsWithProgress = allWords.map(word => ({
+    ...word,
+    progress: progressMap.get(word.id),
+  }));
+
+  const totalWords = wordsWithProgress.length;
+  const wordsLearned = wordsWithProgress.filter(word => word.progress && word.progress.masteryLevel >= 4).length;
+  const needsReview = wordsWithProgress.filter(word => word.progress && word.progress.masteryLevel > 0 && word.progress.masteryLevel < 4).length;
   
   return { totalWords, wordsLearned, needsReview };
 }
@@ -39,6 +47,11 @@ export default function DashboardPage() {
   const { data: publicWordListsData, loading: publicListsLoading } = useCollection<WordList>(
     "wordLists",
     { whereClauses: [["isPublic", "==", true]] }
+  );
+  
+  const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(
+    user ? `users/${user.uid}/wordProgress` : "",
+    { skip: !user }
   );
 
   const [wordListsWithWords, setWordListsWithWords] = useState<WordListWithWords[]>([]);
@@ -78,12 +91,13 @@ export default function DashboardPage() {
 
 
   const stats = useMemo(() => {
+    if (!user) return { totalWords: 0, wordsLearned: 0, needsReview: 0 };
     // Only calculate stats for the user's own lists
     const myListsWithWords = wordListsWithWords.filter(l => l.ownerId === user?.uid);
-    return calculateStats(myListsWithWords);
-  }, [wordListsWithWords, user]);
+    return calculateStats(myListsWithWords, userProgressData);
+  }, [wordListsWithWords, userProgressData, user]);
   
-  const isLoading = userLoading || myListsLoading || publicListsLoading || wordsLoading;
+  const isLoading = userLoading || myListsLoading || publicListsLoading || wordsLoading || progressLoading;
 
   if (isLoading) {
     return (

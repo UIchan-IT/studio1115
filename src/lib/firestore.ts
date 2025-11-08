@@ -9,9 +9,9 @@ import {
   deleteDoc,
   updateDoc,
   increment,
+  setDoc,
   type Firestore,
 } from "firebase/firestore";
-import type { Word, WordList } from "./definitions";
 
 // WordList functions
 export const createWordList = async (db: Firestore, list: {
@@ -31,10 +31,6 @@ export const addWord = async (db: Firestore, listId: string, word: { text: strin
     return addDoc(collection(db, "wordLists", listId, "words"), {
         ...word,
         exampleSentences: [],
-        masteryLevel: 0,
-        lastReviewed: null,
-        mistakeCount: 0,
-        testCount: 0,
     });
 }
 
@@ -47,10 +43,6 @@ export const addWords = async (db: Firestore, listId: string, words: { text: str
         batch.set(docRef, {
             ...word,
             exampleSentences: [],
-            masteryLevel: 0,
-            lastReviewed: null,
-            mistakeCount: 0,
-            testCount: 0,
         });
     });
 
@@ -62,12 +54,14 @@ export const deleteWords = async (db: Firestore, listId: string, wordIds: string
     wordIds.forEach(wordId => {
         const docRef = doc(db, "wordLists", listId, "words", wordId);
         batch.delete(docRef);
+        // Note: This doesn't delete the user progress for the word.
+        // A more robust solution would use a Cloud Function to clean up progress data.
     });
     return batch.commit();
 }
 
-export const updateWordStats = async (db: Firestore, listId: string, wordId: string, isCorrect: boolean) => {
-    const wordRef = doc(db, "wordLists", listId, "words", wordId);
+export const updateWordStats = async (db: Firestore, userId: string, wordId: string, isCorrect: boolean) => {
+    const progressRef = doc(db, "users", userId, "wordProgress", wordId);
     
     const updates: any = {
         lastReviewed: serverTimestamp(),
@@ -79,5 +73,16 @@ export const updateWordStats = async (db: Firestore, listId: string, wordId: str
     }
     // Logic for masteryLevel can be added here if needed
 
-    return updateDoc(wordRef, updates);
+    // Use set with merge to create the document if it doesn't exist, and update if it does.
+    return setDoc(progressRef, updates, { merge: true });
 }
+
+export const initializeWordProgress = async (db: Firestore, userId: string, wordId: string) => {
+    const progressRef = doc(db, "users", userId, "wordProgress", wordId);
+    return setDoc(progressRef, {
+        masteryLevel: 0,
+        mistakeCount: 0,
+        testCount: 0,
+        lastReviewed: null,
+    }, { merge: true });
+};

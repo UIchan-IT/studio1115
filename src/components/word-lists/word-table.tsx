@@ -80,10 +80,10 @@ export default function WordTable({
               <TableCell className="font-medium">{word.text}</TableCell>
               <TableCell>{word.definition}</TableCell>
               <TableCell className="text-center">
-                {word.mistakeCount ?? 0}
+                {word.progress?.mistakeCount ?? 0}
               </TableCell>
               <TableCell className="text-center">
-                {word.testCount ?? 0}
+                {word.progress?.testCount ?? 0}
               </TableCell>
               <TableCell className="text-right">
                 <ExampleSentences word={word.text} />

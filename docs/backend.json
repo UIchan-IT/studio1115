@@ -53,7 +53,7 @@
     },
     "Word": {
       "title": "Word",
-      "description": "A single vocabulary word within a word list.",
+      "description": "A single vocabulary word within a word list. This entity does not contain user-specific progress.",
       "type": "object",
       "properties": {
         "text": {
@@ -70,7 +70,15 @@
             "type": "string"
           },
           "description": "Example sentences using the word."
-        },
+        }
+      },
+      "required": ["text", "definition"]
+    },
+    "UserWordProgress": {
+      "title": "User Word Progress",
+      "description": "Tracks a specific user's learning progress for a single word.",
+      "type": "object",
+      "properties": {
         "masteryLevel": {
           "type": "number",
           "description": "The user's mastery level of the word (0-5)."
@@ -78,7 +86,7 @@
         "lastReviewed": {
           "type": "string",
           "format": "date-time",
-          "description": "The date and time the word was last reviewed."
+          "description": "The date and time the word was last reviewed by the user."
         },
         "mistakeCount": {
           "type": "number",
@@ -89,7 +97,7 @@
             "description": "How many times the user has been tested on this word."
         }
       },
-      "required": ["text", "definition"]
+      "required": ["masteryLevel", "mistakeCount", "testCount"]
     }
   },
   "auth": {
@@ -101,6 +109,12 @@
         "$ref": "#/entities/UserProfile"
       },
       "description": "Stores user profile information."
+    },
+    "/users/{userId}/wordProgress/{wordId}": {
+      "schema": {
+        "$ref": "#/entities/UserWordProgress"
+      },
+      "description": "Sub-collection storing a user's progress for specific words. The wordId is the global ID of the word from a word list."
     },
     "/wordLists/{wordListId}": {
       "schema": {
