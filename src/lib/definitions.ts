@@ -16,7 +16,6 @@ export const WordListSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  createdAt: z.string().datetime(),
   words: z.array(WordSchema),
 });
 

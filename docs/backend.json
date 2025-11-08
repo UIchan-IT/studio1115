@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "WordList": {
+      "title": "Word List",
+      "description": "A collection of words for a user to study.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the word list."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the word list."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the word list was created."
+        }
+      },
+      "required": ["name", "createdAt"]
+    },
+    "Word": {
+      "title": "Word",
+      "description": "A single vocabulary word within a word list.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "The word itself."
+        },
+        "definition": {
+          "type": "string",
+          "description": "The definition of the word."
+        },
+        "exampleSentences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Example sentences using the word."
+        },
+        "masteryLevel": {
+          "type": "number",
+          "description": "The user's mastery level of the word (0-5)."
+        },
+        "lastReviewed": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the word was last reviewed."
+        },
+        "mistakeCount": {
+          "type": "number",
+          "description": "How many times the user has made a mistake on this word."
+        }
+      },
+      "required": ["text", "definition"]
+    }
+  },
+  "auth": {
+    "providers": ["email"]
+  },
+  "firestore": {
+    "/wordLists/{wordListId}": {
+      "schema": {
+        "$ref": "#/entities/WordList"
+      },
+      "description": "Top-level collection of all word lists."
+    },
+    "/wordLists/{wordListId}/words/{wordId}": {
+      "schema": {
+        "$ref": "#/entities/Word"
+      },
+      "description": "Sub-collection of words within a specific word list."
+    }
+  }
+}
