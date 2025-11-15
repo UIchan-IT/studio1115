@@ -6,7 +6,9 @@ import {
   LayoutDashboard,
   List,
   Globe,
-  Target
+  Target,
+  Bot,
+  Loader2
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
@@ -14,8 +16,19 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import type { WordList } from "@/lib/definitions";
 import { useSidebar } from "@/hooks/use-sidebar.tsx";
+import { Button } from "../ui/button";
 
-export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordList[], isMobile: boolean }) {
+export default function SidebarNav({
+   wordLists,
+   isMobile,
+   onAutoTest,
+   isAutoTesting,
+}: {
+    wordLists: WordList[],
+    isMobile: boolean,
+    onAutoTest: () => void,
+    isAutoTesting: boolean
+}) {
   const pathname = usePathname();
   const { isSidebarOpen } = useSidebar();
 
@@ -76,6 +89,18 @@ export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordLis
             )}
           </nav>
         </ScrollArea>
+        <div className="mt-auto p-4 space-y-2 border-t">
+             <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Debug</h3>
+             <Button
+                variant="outline"
+                onClick={onAutoTest}
+                disabled={isAutoTesting}
+                className="w-full"
+             >
+                {isAutoTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
+                Run Auto-Test
+             </Button>
+        </div>
       </div>
     </aside>
   );

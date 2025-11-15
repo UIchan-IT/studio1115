@@ -6,12 +6,10 @@ import type { Word } from "@/lib/definitions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Check, X, RotateCw, Loader2 } from "lucide-react";
+import { Check, X, RotateCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useFirestore, useUser } from "@/firebase";
 import { updateWordStats, initializeWordProgress } from "@/lib/firestore";
-import { useParams } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
 
 type QuizQuestion = {
   questionWord: Word;
@@ -45,12 +43,8 @@ export default function QuizView({ words }: { words: Word[] }) {
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-  const [isAutoTesting, setIsAutoTesting] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
-  const params = useParams();
-  const listId = params.listId as string;
-  const { toast } = useToast();
 
   useEffect(() => {
     if (words.length > 0 && user) {
@@ -118,30 +112,6 @@ export default function QuizView({ words }: { words: Word[] }) {
     setIsComplete(false);
   }
 
-  const runAutoTest = async (runs: number) => {
-    if (!user) return;
-    setIsAutoTesting(true);
-
-    for (let i = 0; i < runs; i++) {
-        const quizSize = Math.min(words.length, 10);
-        const autoTestQuestions = generateQuiz(words, quizSize);
-        
-        for (const question of autoTestQuestions) {
-            // 30% chance to be incorrect
-            const isCorrect = Math.random() > 0.3;
-            await updateWordStats(firestore, user.uid, question.questionWord.id, isCorrect);
-        }
-    }
-    
-    toast({
-        title: "Debug Test Complete",
-        description: `${runs} runs of ${Math.min(words.length, 10)} questions completed.`,
-    });
-    setIsAutoTesting(false);
-    // We can re-run the normal quiz setup to reflect new progress, or just leave it.
-    // For now, we'll just stop the loading indicator.
-  };
-
   if (isComplete) {
     return (
         <Card className="w-full max-w-2xl text-center p-8">
@@ -189,7 +159,7 @@ export default function QuizView({ words }: { words: Word[] }) {
                     isAnswered && isSelected && !isCorrect && "bg-red-100 border-red-500 text-red-800 hover:bg-red-200"
                   )}
                   onClick={() => handleAnswerSelect(option.id)}
-                  disabled={isAnswered || isAutoTesting}
+                  disabled={isAnswered}
                 >
                   {option.definition}
                 </Button>
@@ -198,18 +168,7 @@ export default function QuizView({ words }: { words: Word[] }) {
           </div>
         </CardContent>
       </Card>
-      <div className="flex justify-between items-center mt-6 h-10">
-        <div className="flex-1 text-left">
-             <Button
-                variant="outline"
-                onClick={() => runAutoTest(5)}
-                disabled={isAutoTesting}
-             >
-                {isAutoTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Debug: 5x Auto-Test
-             </Button>
-        </div>
-        <div className="flex-1 text-center">
+      <div className="flex justify-center items-center mt-6 h-10">
             {isAnswered && (
                 <>
                 {selectedAnswerId === currentQuestion.correctAnswerId ? (
@@ -225,11 +184,7 @@ export default function QuizView({ words }: { words: Word[] }) {
                 )}
                 </>
             )}
-        </div>
-        <div className="flex-1" />
       </div>
     </div>
   );
 }
-
-    
