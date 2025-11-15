@@ -8,7 +8,8 @@ import {
   Globe,
   Target,
   Bot,
-  Loader2
+  Loader2,
+  UserX,
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
@@ -23,11 +24,15 @@ export default function SidebarNav({
    isMobile,
    onAutoTest,
    isAutoTesting,
+   onAnonymousTest,
+   isAnonymousTesting,
 }: {
     wordLists: WordList[],
     isMobile: boolean,
     onAutoTest: () => void,
-    isAutoTesting: boolean
+    isAutoTesting: boolean,
+    onAnonymousTest: () => void,
+    isAnonymousTesting: boolean
 }) {
   const pathname = usePathname();
   const { isSidebarOpen } = useSidebar();
@@ -94,11 +99,20 @@ export default function SidebarNav({
              <Button
                 variant="outline"
                 onClick={onAutoTest}
-                disabled={isAutoTesting}
+                disabled={isAutoTesting || isAnonymousTesting}
                 className="w-full"
              >
                 {isAutoTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
                 Run Auto-Test
+             </Button>
+             <Button
+                variant="outline"
+                onClick={onAnonymousTest}
+                disabled={isAutoTesting || isAnonymousTesting}
+                className="w-full"
+             >
+                {isAnonymousTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserX className="mr-2 h-4 w-4" />}
+                Run Anonymous Test
              </Button>
         </div>
       </div>

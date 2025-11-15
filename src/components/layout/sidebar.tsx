@@ -1,13 +1,16 @@
 "use client";
 
 import SidebarNav from "./sidebar-nav";
-import { useCollection, useUser, useFirestore } from "@/firebase";
+import { useCollection, useUser, useFirestore, useAuth } from "@/firebase";
 import type { WordList, Word } from "@/lib/definitions";
 import { Skeleton } from "../ui/skeleton";
 import { useMemo, useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { updateWordStats } from "@/lib/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { signInAnonymously, signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
+
 
 interface WordListWithWords extends WordList {
   words: Word[];
@@ -16,11 +19,16 @@ interface WordListWithWords extends WordList {
 export default function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
   const { user } = useUser();
   const firestore = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
+
   const { toast } = useToast();
   
   const [wordListsWithWords, setWordListsWithWords] = useState<WordListWithWords[]>([]);
   const [wordsLoading, setWordsLoading] = useState(true);
   const [isAutoTesting, setIsAutoTesting] = useState(false);
+  const [isAnonymousTesting, setIsAnonymousTesting] = useState(false);
+
 
   const { data: myWordLists, loading: myListsLoading } = useCollection<WordList>(
     "wordLists",
@@ -101,6 +109,64 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
     });
     setIsAutoTesting(false);
   };
+  
+    const handleAnonymousTest = async () => {
+    setIsAnonymousTesting(true);
+    toast({ title: "Starting Anonymous Test...", description: "Signing in anonymously and preparing test..." });
+
+    try {
+      // 1. Sign out current user if any, then sign in anonymously
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
+      const userCredential = await signInAnonymously(auth);
+      const anonUser = userCredential.user;
+
+      // 2. Fetch public lists and their words
+      const publicListsQuery = collection(firestore, "wordLists");
+      const publicListsSnapshot = await getDocs(publicListsQuery);
+      const publicLists = publicListsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WordList));
+
+      const publicWords = (await Promise.all(publicLists.map(async (list) => {
+        const wordsSnapshot = await getDocs(collection(firestore, "wordLists", list.id, "words"));
+        return wordsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Word));
+      }))).flat();
+
+      if (publicWords.length < 1) {
+        toast({ variant: "destructive", title: "Test Canceled", description: "No public words available to test." });
+        setIsAnonymousTesting(false);
+        return;
+      }
+      
+      // 3. Run the test
+      const runs = 10;
+      const questionsPerRun = 10;
+      const totalQuestions = runs * questionsPerRun;
+      toast({ title: "Running Quiz Simulation", description: `${totalQuestions} questions will be simulated.` });
+
+      let promises = [];
+      for (let i = 0; i < runs; i++) {
+        const shuffled = [...publicWords].sort(() => 0.5 - Math.random());
+        const selectedWords = shuffled.slice(0, questionsPerRun);
+        for (const word of selectedWords) {
+          const isCorrect = Math.random() > 0.3; // ~30% incorrect rate
+          promises.push(updateWordStats(firestore, anonUser.uid, word.id, isCorrect));
+        }
+      }
+      await Promise.all(promises);
+
+      toast({ title: "Anonymous Test Complete", description: "10 quizzes of 10 questions each were simulated." });
+
+    } catch (error) {
+      console.error("Anonymous test failed:", error);
+      toast({ variant: "destructive", title: "Test Failed", description: "An error occurred during the anonymous test." });
+    } finally {
+      // 4. Sign out and redirect
+      await signOut(auth);
+      router.push('/login');
+      setIsAnonymousTesting(false);
+    }
+  };
 
 
   const loading = myListsLoading || publicListsLoading || wordsLoading;
@@ -118,6 +184,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
              <div className="mt-auto space-y-2 border-t pt-4">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
              </div>
           </div>
        </aside>
@@ -130,6 +197,8 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
         isMobile={isMobile}
         onAutoTest={handleAutoTest}
         isAutoTesting={isAutoTesting}
+        onAnonymousTest={handleAnonymousTest}
+        isAnonymousTesting={isAnonymousTesting}
     />
   );
 }
