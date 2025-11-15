@@ -1,9 +1,9 @@
 "use client";
 
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, useCollection } from "@/firebase";
 import type { UserWordProgress, Word, WordList } from "@/lib/definitions";
 import { useMemo, useState, useEffect } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Target, AlertCircle } from "lucide-react";
 import {
