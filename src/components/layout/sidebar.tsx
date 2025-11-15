@@ -1,19 +1,13 @@
 "use client";
 
 import SidebarNav from "./sidebar-nav";
-import { useCollection, useUser, useFirestore } from "@/firebase";
-import type { WordList, UserWordProgress, Word } from "@/lib/definitions";
+import { useCollection, useUser } from "@/firebase";
+import type { WordList } from "@/lib/definitions";
 import { Skeleton } from "../ui/skeleton";
-import { useMemo, useState, useEffect } from "react";
-import { getDocs, collection } from "firebase/firestore";
-
-interface WordListWithWords extends WordList {
-  words: Word[];
-}
+import { useMemo } from "react";
 
 export default function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
   const { user } = useUser();
-  const firestore = useFirestore();
 
   const { data: myWordLists, loading: myListsLoading } = useCollection<WordList>(
     "wordLists",
@@ -24,14 +18,6 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
     "wordLists",
     { whereClauses: [["isPublic", "==", true]] }
   );
-
-  const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(
-    user ? `users/${user.uid}/wordProgress` : "",
-    { skip: !user }
-  );
-
-  const [wordListsWithWords, setWordListsWithWords] = useState<WordListWithWords[]>([]);
-  const [wordsLoading, setWordsLoading] = useState(true);
 
   const allWordLists = useMemo(() => {
     const combined = [...myWordLists];
@@ -45,44 +31,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
   }, [myWordLists, publicWordLists]);
 
 
-  useEffect(() => {
-    const listsLoading = myListsLoading || publicListsLoading;
-    if (allWordLists.length > 0 && firestore) {
-      const fetchAllWords = async () => {
-        setWordsLoading(true);
-        const listsWithWords = await Promise.all(allWordLists.map(async (list) => {
-          const wordsSnapshot = await getDocs(collection(firestore, "wordLists", list.id, "words"));
-          const words = wordsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Word));
-          return { ...list, words };
-        }));
-        setWordListsWithWords(listsWithWords);
-        setWordsLoading(false);
-      };
-      fetchAllWords();
-    } else if (!listsLoading) {
-      setWordListsWithWords([]);
-      setWordsLoading(false);
-    }
-  }, [allWordLists, firestore, myListsLoading, publicListsLoading]);
-
-  const allWordsWithProgress = useMemo(() => {
-    const allWords = wordListsWithWords.flatMap(list => list.words || []);
-    if (!userProgressData) return allWords;
-    const progressMap = new Map(userProgressData.map(p => [p.id, p]));
-    return allWords.map(word => ({
-      ...word,
-      progress: progressMap.get(word.id)
-    }));
-  }, [wordListsWithWords, userProgressData]);
-  
-  const weakWords = useMemo(() => {
-    return allWordsWithProgress
-      .filter((word) => word.progress && word.progress.mistakeCount > 0)
-      .sort((a, b) => (b.progress?.mistakeCount ?? 0) - (a.progress?.mistakeCount ?? 0))
-      .slice(0, 5);
-  }, [allWordsWithProgress]);
-
-  const loading = myListsLoading || publicListsLoading || wordsLoading || progressLoading;
+  const loading = myListsLoading || publicListsLoading;
 
   if (loading && !isMobile) {
     return (
@@ -104,6 +53,6 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
   }
 
   return (
-    <SidebarNav wordLists={allWordLists} weakWords={weakWords} isMobile={isMobile}/>
+    <SidebarNav wordLists={allWordLists} isMobile={isMobile}/>
   );
 }

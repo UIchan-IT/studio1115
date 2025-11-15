@@ -6,23 +6,16 @@ import {
   LayoutDashboard,
   List,
   Globe,
-  ChevronDown
+  Target
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
-import type { WordList, Word } from "@/lib/definitions";
+import type { WordList } from "@/lib/definitions";
 import { useSidebar } from "@/hooks/use-sidebar.tsx";
-import WeakWords from "../dashboard/weak-words";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
-export default function SidebarNav({ wordLists, weakWords, isMobile }: { wordLists: WordList[], weakWords: Word[], isMobile: boolean }) {
+export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordList[], isMobile: boolean }) {
   const pathname = usePathname();
   const { isSidebarOpen } = useSidebar();
 
@@ -59,39 +52,28 @@ export default function SidebarNav({ wordLists, weakWords, isMobile }: { wordLis
               ))}
             </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center justify-between px-2">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Word Lists
-                </h3>
+            {wordLists.length > 0 && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Word Lists
+                  </h3>
+                </div>
+                {wordLists.map((list) => (
+                  <Link
+                    key={list.id}
+                    href={`/lists/${list.id}`}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                      pathname.startsWith(`/lists/${list.id}`) && "bg-muted text-primary"
+                    )}
+                  >
+                    {list.isPublic ? <Globe className="h-4 w-4" /> : <List className="h-4 w-4" />}
+                    <span className="truncate">{list.name}</span>
+                  </Link>
+                ))}
               </div>
-              {wordLists.map((list) => (
-                <Link
-                  key={list.id}
-                  href={`/lists/${list.id}`}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    pathname.startsWith(`/lists/${list.id}`) && "bg-muted text-primary"
-                  )}
-                >
-                  {list.isPublic ? <Globe className="h-4 w-4" /> : <List className="h-4 w-4" />}
-                  <span className="truncate">{list.name}</span>
-                </Link>
-              ))}
-            </div>
-            
-            <Accordion type="single" collapsible className="w-full" defaultValue="review">
-              <AccordionItem value="review" className="border-b-0">
-                 <AccordionTrigger className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:no-underline hover:text-primary [&[data-state=open]>svg]:text-primary">
-                    Review
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-1 px-2 pt-2">
-                    <WeakWords words={weakWords} />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            )}
           </nav>
         </ScrollArea>
       </div>
@@ -104,5 +86,10 @@ const mainNav = [
       href: "/dashboard",
       label: "Dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      href: "/review",
+      label: "Review",
+      icon: Target,
     },
   ];

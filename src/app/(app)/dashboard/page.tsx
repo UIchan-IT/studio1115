@@ -6,7 +6,7 @@ import StatsCards from "@/components/dashboard/stats-cards";
 import WordLists from "@/components/dashboard/word-lists";
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import { useState, useEffect } from "react";
 
