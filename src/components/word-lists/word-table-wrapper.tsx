@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { FileUp, PlusCircle, Trash2, Loader2 } from "lucide-react";
+import { FileUp, PlusCircle, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Word, WordList } from "@/lib/definitions";
 import WordTable from "./word-table";
 import {
@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -33,6 +32,9 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList & { 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const newWordRef = useRef<HTMLInputElement>(null);
   const newDefinitionRef = useRef<HTMLInputElement>(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const wordsPerPage = 5;
 
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -177,6 +179,13 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList & { 
     }
   };
 
+  const totalPages = Math.ceil((wordList.words?.length || 0) / wordsPerPage);
+  const paginatedWords = wordList.words?.slice(
+    (currentPage - 1) * wordsPerPage,
+    currentPage * wordsPerPage
+  ) || [];
+
+
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
@@ -240,11 +249,36 @@ export default function WordTableWrapper({ wordList }: { wordList: WordList & { 
 
       <Card className="border shadow-sm rounded-lg">
         <WordTable
-          words={wordList.words}
+          words={paginatedWords}
           selectedRows={selectedRows}
           setSelectedRows={setSelectedRows}
         />
       </Card>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-end space-x-2 py-4">
+            <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+            </span>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+            >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+            >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+        </div>
+      )}
     </div>
   );
 }
