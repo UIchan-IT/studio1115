@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useCollection } from "@/firebase";
@@ -5,7 +6,7 @@ import type { UserWordProgress, Word, WordList } from "@/lib/definitions";
 import { useMemo, useState, useEffect } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Target, AlertCircle } from "lucide-react";
+import { Target, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -29,6 +30,8 @@ export default function ReviewPage() {
   
   const [allWordLists, setAllWordLists] = useState<WordList[]>([]);
   const [listsLoading, setListsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const wordsPerPage = 5;
 
   const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(
     user ? `users/${user.uid}/wordProgress` : "",
@@ -99,7 +102,12 @@ export default function ReviewPage() {
       .filter((word) => word.progress && word.progress.mistakeCount > 0)
       .sort((a, b) => (b.progress?.mistakeCount ?? 0) - (a.progress?.mistakeCount ?? 0));
   }, [wordListsWithWords, userProgressData]);
-
+  
+  const totalPages = Math.ceil(weakWords.length / wordsPerPage);
+  const paginatedWords = weakWords.slice(
+    (currentPage - 1) * wordsPerPage,
+    currentPage * wordsPerPage
+  );
 
   const isLoading = userLoading || listsLoading || wordsLoading || progressLoading;
 
@@ -136,7 +144,7 @@ export default function ReviewPage() {
 
         {weakWords.length > 0 ? (
            <div className="space-y-4">
-            {weakWords.map(word => (
+            {paginatedWords.map(word => (
               <Card key={word.id}>
                 <CardHeader>
                     <div className="flex items-center justify-between">
@@ -149,6 +157,31 @@ export default function ReviewPage() {
                 </CardHeader>
               </Card>
             ))}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-end space-x-2 py-4">
+                    <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                        Previous
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                </div>
+            )}
            </div>
         ) : (
              <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg mt-16">
