@@ -4,7 +4,6 @@ import { useCollection, useUser } from "@/firebase";
 import type { Stats, WordList, Word, UserWordProgress } from "@/lib/definitions";
 import StatsCards from "@/components/dashboard/stats-cards";
 import WordLists from "@/components/dashboard/word-lists";
-import WeakWords from "@/components/dashboard/weak-words";
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -69,20 +68,9 @@ export default function DashboardPage() {
     return combined;
   }, [myWordListsData, publicWordListsData]);
 
-  const allWordsWithProgress = useMemo(() => {
-    const allWords = wordListsWithWords.flatMap(list => list.words || []);
-    if (!userProgressData) return allWords;
-    const progressMap = new Map(userProgressData.map(p => [p.id, p]));
-    return allWords.map(word => ({
-      ...word,
-      progress: progressMap.get(word.id)
-    }));
-  }, [wordListsWithWords, userProgressData]);
-
-
   useEffect(() => {
     const listsLoading = myListsLoading || publicListsLoading;
-    if (allWordLists.length > 0) {
+    if (allWordLists.length > 0 && firestore) {
       const fetchAllWords = async () => {
         setWordsLoading(true);
         const listsWithWords = await Promise.all(allWordLists.map(async (list) => {
@@ -123,8 +111,7 @@ export default function DashboardPage() {
               <Skeleton className="h-24" />
               <Skeleton className="h-24" />
            </div>
-           <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2">
+           <div>
               <div className="flex items-center justify-between mb-4">
                   <Skeleton className="h-9 w-48" />
                   <Skeleton className="h-10 w-40" />
@@ -134,11 +121,6 @@ export default function DashboardPage() {
                     <Skeleton className="h-56" />
                 </div>
               </div>
-              <div className="lg:col-span-1">
-                <Skeleton className="h-9 w-48 mb-4" />
-                <Skeleton className="h-80" />
-              </div>
-           </div>
          </div>
        </div>
     )
@@ -157,14 +139,7 @@ export default function DashboardPage() {
 
         <StatsCards stats={stats} />
         
-        <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-                <WordLists initialWordLists={wordListsWithWords} />
-            </div>
-            <div className="lg:col-span-1">
-                <WeakWords words={allWordsWithProgress} />
-            </div>
-        </div>
+        <WordLists initialWordLists={wordListsWithWords} />
 
       </div>
     </div>

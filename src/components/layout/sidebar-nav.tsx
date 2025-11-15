@@ -7,16 +7,18 @@ import {
   PlusCircle,
   List,
   Globe,
+  AlertCircle,
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
-import type { WordList } from "@/lib/definitions";
+import type { WordList, Word } from "@/lib/definitions";
 import { useSidebar } from "@/hooks/use-sidebar.tsx";
+import WeakWords from "../dashboard/weak-words";
 
-export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordList[], isMobile: boolean }) {
+export default function SidebarNav({ wordLists, weakWords, isMobile }: { wordLists: WordList[], weakWords: Word[], isMobile: boolean }) {
   const pathname = usePathname();
   const { isSidebarOpen } = useSidebar();
 
@@ -73,6 +75,12 @@ export default function SidebarNav({ wordLists, isMobile }: { wordLists: WordLis
                   <span className="truncate">{list.name}</span>
                 </Link>
               ))}
+            </div>
+            <div className="space-y-1 px-2">
+                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  Review
+                </h3>
+                <WeakWords words={weakWords} />
             </div>
           </nav>
         </ScrollArea>
