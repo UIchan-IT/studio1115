@@ -4,19 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  PlusCircle,
   List,
   Globe,
-  AlertCircle,
+  ChevronDown
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import type { WordList, Word } from "@/lib/definitions";
 import { useSidebar } from "@/hooks/use-sidebar.tsx";
 import WeakWords from "../dashboard/weak-words";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function SidebarNav({ wordLists, weakWords, isMobile }: { wordLists: WordList[], weakWords: Word[], isMobile: boolean }) {
   const pathname = usePathname();
@@ -60,7 +64,6 @@ export default function SidebarNav({ wordLists, weakWords, isMobile }: { wordLis
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Word Lists
                 </h3>
-                  {/* The button to create a list is in the dashboard */}
               </div>
               {wordLists.map((list) => (
                 <Link
@@ -76,12 +79,19 @@ export default function SidebarNav({ wordLists, weakWords, isMobile }: { wordLis
                 </Link>
               ))}
             </div>
-            <div className="space-y-1 px-2">
-                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Review
-                </h3>
-                <WeakWords words={weakWords} />
-            </div>
+            
+            <Accordion type="single" collapsible className="w-full" defaultValue="review">
+              <AccordionItem value="review" className="border-b-0">
+                 <AccordionTrigger className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:no-underline hover:text-primary [&[data-state=open]>svg]:text-primary">
+                    Review
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-1 px-2 pt-2">
+                    <WeakWords words={weakWords} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </nav>
         </ScrollArea>
       </div>
