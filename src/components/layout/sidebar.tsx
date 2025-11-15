@@ -77,9 +77,11 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
     setIsAutoTesting(true);
     const runs = 5;
     const questionsPerRun = 10;
+    const totalQuestions = runs * questionsPerRun;
     
-    toast({ title: "Starting Auto-Test...", description: `${runs * questionsPerRun} total questions will be simulated.`});
+    toast({ title: "Starting Auto-Test...", description: `${totalQuestions} total questions will be simulated.`});
 
+    let promises = [];
     for (let i = 0; i < runs; i++) {
         const shuffled = [...allWords].sort(() => 0.5 - Math.random());
         const selectedWords = shuffled.slice(0, questionsPerRun);
@@ -87,13 +89,15 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
         for (const word of selectedWords) {
             // ~30% chance to be incorrect
             const isCorrect = Math.random() > 0.3;
-            await updateWordStats(firestore, user.uid, word.id, isCorrect);
+            promises.push(updateWordStats(firestore, user.uid, word.id, isCorrect));
         }
     }
     
+    await Promise.all(promises);
+    
     toast({
         title: "Debug Test Complete",
-        description: `${runs} runs of ${questionsPerRun} questions completed.`,
+        description: `${totalQuestions} questions simulated across ${runs} runs.`,
     });
     setIsAutoTesting(false);
   };
