@@ -102,7 +102,7 @@ export default function QuizView({ words }: { words: Word[] }) {
 
     setTimeout(() => {
         handleNextQuestion();
-    }, 500);
+    }, 100);
   };
   
   const handleRestart = () => {
