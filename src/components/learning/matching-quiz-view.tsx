@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -5,7 +6,7 @@ import type { Word } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, X, RotateCw, Shuffle } from "lucide-react";
+import { Check, X, RotateCw, Shuffle, GripVertical } from "lucide-react";
 import { updateWordStats, initializeWordProgress } from "@/lib/firestore";
 import { useFirestore, useUser } from "@/firebase";
 
@@ -13,6 +14,12 @@ type MatchingRound = {
   words: Word[];
   shuffledDefinitions: { id: string; definition: string }[];
 };
+
+type SessionResult = {
+    word: Word;
+    isCorrect: boolean;
+};
+
 
 function generateMatchingRounds(words: Word[]): MatchingRound[] {
   const shuffledWords = [...words].sort(() => 0.5 - Math.random());
@@ -39,6 +46,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   const [matches, setMatches] = useState<Record<string, string>>({}); // { wordId: definitionId }
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [sessionResults, setSessionResults] = useState<SessionResult[]>([]);
 
   useEffect(() => {
     if (words.length >= 4 && user) {
@@ -61,6 +69,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     setSelectedDefinitionId(null);
     setIsSubmitted(false);
     setIsComplete(false);
+    setSessionResults([]);
   }, [words, user, firestore]);
 
   const currentRound = rounds[currentRoundIndex];
@@ -101,10 +110,15 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   const handleSubmit = () => {
     if (!user || !currentRound) return;
     setIsSubmitted(true);
+    
+    const roundResults: SessionResult[] = [];
     const promises = currentRound.words.map(word => {
         const isCorrect = matches[word.id] === word.id;
+        roundResults.push({ word, isCorrect });
         return updateWordStats(firestore, user.uid, word.id, isCorrect);
     });
+    
+    setSessionResults(prev => [...prev, ...roundResults]);
     Promise.all(promises);
   };
 
@@ -130,15 +144,41 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     setSelectedDefinitionId(null);
     setIsSubmitted(false);
     setIsComplete(false);
+    setSessionResults([]);
   }
 
   if (isComplete) {
+    const correctCount = sessionResults.filter(r => r.isCorrect).length;
+    const totalCount = sessionResults.length;
     return (
         <Card className="w-full max-w-4xl text-center p-8">
             <CardContent className="flex flex-col items-center gap-4">
                 <Check className="h-16 w-16 text-green-500 bg-green-100 rounded-full p-2" />
                 <h2 className="text-2xl font-bold font-headline">Session Complete!</h2>
-                <p className="text-muted-foreground">You've finished all the matching rounds.</p>
+                <p className="text-muted-foreground text-xl">Your score: <span className="font-bold text-foreground">{correctCount} / {totalCount}</span></p>
+
+                <Card className="w-full mt-4 text-left">
+                    <CardContent className="p-4 space-y-2">
+                        <h3 className="font-semibold">Results Summary:</h3>
+                        <ul className="space-y-2">
+                            {sessionResults.map(({word, isCorrect}, index) => (
+                                <li key={index} className="flex items-center justify-between p-2 rounded-md bg-muted">
+                                    <div className="flex items-center">
+                                       {isCorrect ? <Check className="h-4 w-4 mr-2 text-green-500" /> : <X className="h-4 w-4 mr-2 text-red-500" />}
+                                        <div>
+                                            <p className="font-medium">{word.text}</p>
+                                            <p className="text-sm text-muted-foreground">{word.definition}</p>
+                                        </div>
+                                    </div>
+                                    <div className={cn("text-sm font-semibold", isCorrect ? "text-green-600" : "text-red-600")}>
+                                        {isCorrect ? "Correct" : "Incorrect"}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+
                 <Button onClick={handleRestart} className="mt-4">
                     <RotateCw className="mr-2 h-4 w-4" />
                     Review Again
@@ -185,8 +225,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                         "w-full h-auto py-4 justify-center text-center",
                                         isSelected && "ring-2 ring-primary",
                                         isMatched && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isCorrect && "bg-green-500 border-green-700 text-white hover:bg-green-600",
-                                        isSubmitted && !isCorrect && "bg-red-500 border-red-700 text-white hover:bg-red-600"
+                                        isSubmitted && isCorrect && "bg-green-600 border-green-700 text-white hover:bg-green-700",
+                                        isSubmitted && !isCorrect && "bg-red-600 border-red-700 text-white hover:bg-red-700"
                                     )}
                                     disabled={isSubmitted && isMatched}
                                 >
@@ -215,8 +255,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                         "w-full h-auto py-4 justify-start text-left whitespace-normal",
                                         isSelected && "ring-2 ring-primary",
                                         isMatchedByAWord && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isMatchedByAWord && isCorrect && "bg-green-500 border-green-700 text-white hover:bg-green-600",
-                                        isSubmitted && isMatchedByAWord && !isCorrect && "bg-red-500 border-red-700 text-white hover:bg-red-600"
+                                        isSubmitted && isMatchedByAWord && isCorrect && "bg-green-600 border-green-700 text-white hover:bg-green-700",
+                                        isSubmitted && isMatchedByAWord && !isCorrect && "bg-red-600 border-red-700 text-white hover:bg-red-700"
                                     )}
                                     disabled={isSubmitted || isMatchedByAWord}
                                 >
@@ -233,13 +273,14 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                  <Button onClick={handleSubmit} disabled={!allMatched} size="lg">
                     Check Answers
                  </Button>
-            ) : null}
-            
-             <Button onClick={handleNextRound} size="lg" variant={isSubmitted ? "default" : "outline"}>
-                <Shuffle className="mr-2 h-4 w-4"/>
+            ) : (
+             <Button onClick={handleNextRound} size="lg">
                 {currentRoundIndex < rounds.length -1 ? "Next Round" : "Finish Quiz"}
              </Button>
+            )}
         </div>
     </div>
   );
 }
+
+    
