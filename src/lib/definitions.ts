@@ -39,3 +39,10 @@ export const StatsSchema = z.object({
 });
 
 export type Stats = z.infer<typeof StatsSchema>;
+
+export const SessionResultSchema = z.object({
+  word: WordSchema,
+  isCorrect: z.boolean(),
+});
+
+export type SessionResult = z.infer<typeof SessionResultSchema>;

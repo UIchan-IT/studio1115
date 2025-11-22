@@ -2,22 +2,19 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import type { Word } from "@/lib/definitions";
+import type { Word, SessionResult } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, X, RotateCw } from "lucide-react";
+import { Check, X, RotateCw, History } from "lucide-react";
 import { updateWordStats, initializeWordProgress } from "@/lib/firestore";
 import { useFirestore, useUser } from "@/firebase";
+import { useRouter } from "next/navigation";
+
 
 type MatchingRound = {
   words: Word[];
   shuffledDefinitions: { id: string; definition: string }[];
-};
-
-type SessionResult = {
-    word: Word;
-    isCorrect: boolean;
 };
 
 
@@ -39,6 +36,7 @@ function generateMatchingRounds(words: Word[]): MatchingRound[] {
 export default function MatchingQuizView({ words }: { words: Word[] }) {
   const { user } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
   const [rounds, setRounds] = useState<MatchingRound[]>([]);
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
@@ -121,20 +119,25 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     
     setSessionResults(prev => [...prev, ...roundResults]);
     Promise.all(promises);
-
-    // 2. Move to next round after a delay
-    setTimeout(() => {
-        if (currentRoundIndex < rounds.length - 1) {
-            setCurrentRoundIndex(prev => prev + 1);
-            setIsSubmitted(false);
-            setMatches({});
-            setSelectedWordId(null);
-            setSelectedDefinitionId(null);
-        } else {
-            setIsComplete(true);
-        }
-    }, 1500); // 1.5 second delay to show results
   };
+  
+  const handleNextRound = () => {
+    if (currentRoundIndex < rounds.length - 1) {
+        setCurrentRoundIndex(prev => prev + 1);
+        setIsSubmitted(false);
+        setMatches({});
+        setSelectedWordId(null);
+        setSelectedDefinitionId(null);
+    } else {
+        // Save results to sessionStorage before completing
+        try {
+            sessionStorage.setItem('lastSessionResults', JSON.stringify(sessionResults));
+        } catch (e) {
+            console.error("Could not save session results to sessionStorage", e);
+        }
+        setIsComplete(true);
+    }
+  }
 
   const handleRestart = () => {
      if (words.length >= 4) {
@@ -181,10 +184,16 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                     </CardContent>
                 </Card>
 
-                <Button onClick={handleRestart} className="mt-4">
-                    <RotateCw className="mr-2 h-4 w-4" />
-                    Review Again
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                    <Button onClick={handleRestart}>
+                        <RotateCw className="mr-2 h-4 w-4" />
+                        Play Again
+                    </Button>
+                    <Button variant="outline" onClick={() => router.push('/history')}>
+                        <History className="mr-2 h-4 w-4" />
+                        View Full History
+                    </Button>
+                </div>
             </CardContent>
         </Card>
     );
@@ -227,8 +236,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                         "w-full h-auto py-4 justify-center text-center",
                                         isSelected && "ring-2 ring-primary",
                                         isMatched && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isCorrect && "bg-green-600 border-green-700 text-white hover:bg-green-700",
-                                        isSubmitted && !isCorrect && "bg-red-600 border-red-700 text-white hover:bg-red-700"
+                                        isSubmitted && isCorrect && "bg-green-100 border-green-300 text-green-800 hover:bg-green-200",
+                                        isSubmitted && !isCorrect && "bg-red-100 border-red-300 text-red-800 hover:bg-red-200"
                                     )}
                                     disabled={isSubmitted}
                                 >
@@ -257,8 +266,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                         "w-full h-auto py-4 justify-start text-left whitespace-normal",
                                         isSelected && "ring-2 ring-primary",
                                         isMatchedByAWord && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isMatchedByAWord && isCorrect && "bg-green-600 border-green-700 text-white hover:bg-green-700",
-                                        isSubmitted && isMatchedByAWord && !isCorrect && "bg-red-600 border-red-700 text-white hover:bg-red-700"
+                                        isSubmitted && isMatchedByAWord && isCorrect && "bg-green-100 border-green-300 text-green-800 hover:bg-green-200",
+                                        isSubmitted && isMatchedByAWord && !isCorrect && "bg-red-100 border-red-300 text-red-800 hover:bg-red-200"
                                     )}
                                     disabled={isSubmitted || isMatchedByAWord}
                                 >
@@ -271,9 +280,15 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
             </CardContent>
         </Card>
         <div className="flex justify-center items-center mt-6 space-x-4">
-            <Button onClick={handleSubmit} disabled={!allMatched || isSubmitted} size="lg">
+           {!isSubmitted ? (
+             <Button onClick={handleSubmit} disabled={!allMatched} size="lg">
                  Check Answers
             </Button>
+           ) : (
+            <Button onClick={handleNextRound} size="lg">
+                {currentRoundIndex < rounds.length - 1 ? 'Next Round' : 'Finish Quiz'}
+            </Button>
+           )}
         </div>
     </div>
   );
