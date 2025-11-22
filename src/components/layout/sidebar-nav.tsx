@@ -28,8 +28,8 @@ export default function SidebarNav({
    isAutoTesting,
    onAnonymousTest,
    isAnonymousTesting,
-   onSingleQuestionTest,
-   isSingleTesting,
+   onFourQuestionTest,
+   isFourQuestionTesting,
 }: {
     wordLists: WordList[],
     isMobile: boolean,
@@ -37,8 +37,8 @@ export default function SidebarNav({
     isAutoTesting: boolean,
     onAnonymousTest: () => void,
     isAnonymousTesting: boolean,
-    onSingleQuestionTest: () => void,
-    isSingleTesting: boolean,
+    onFourQuestionTest: () => void,
+    isFourQuestionTesting: boolean,
 }) {
   const pathname = usePathname();
   const { isSidebarOpen } = useSidebar();
@@ -48,7 +48,7 @@ export default function SidebarNav({
     isMobile && (isSidebarOpen ? "translate-x-0" : "-translate-x-full"),
   );
 
-  const isAnyTestRunning = isAutoTesting || isAnonymousTesting || isSingleTesting;
+  const isAnyTestRunning = isAutoTesting || isAnonymousTesting || isFourQuestionTesting;
 
   return (
     <aside className={cn(sidebarClasses, isMobile && "w-full")}>
@@ -124,12 +124,12 @@ export default function SidebarNav({
              </Button>
              <Button
                 variant="outline"
-                onClick={onSingleQuestionTest}
+                onClick={onFourQuestionTest}
                 disabled={isAnyTestRunning}
                 className="w-full"
               >
-                {isSingleTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileQuestion className="mr-2 h-4 w-4" />}
-                Run 1-Question Test
+                {isFourQuestionTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileQuestion className="mr-2 h-4 w-4" />}
+                Run 4-Question Test
               </Button>
         </div>
       </div>

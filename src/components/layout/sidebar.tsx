@@ -29,7 +29,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
   const [wordsLoading, setWordsLoading] = useState(true);
   const [isAutoTesting, setIsAutoTesting] = useState(false);
   const [isAnonymousTesting, setIsAnonymousTesting] = useState(false);
-  const [isSingleTesting, setIsSingleTesting] = useState(false);
+  const [isFourQuestionTesting, setIsFourQuestionTesting] = useState(false);
 
 
   const { data: myWordLists, loading: myListsLoading } = useCollection<WordList>(
@@ -170,45 +170,42 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
     }
   };
 
-  const handleSingleQuestionTest = async () => {
-    if (!user || allWords.length === 0) {
+  const handleFourQuestionTest = async () => {
+    if (!user || allWords.length < 4) {
       toast({
         variant: "destructive",
         title: "Cannot run test",
-        description: "No user or words available.",
+        description: "No user logged in or not enough words available (need at least 4).",
       });
       return;
     }
-    setIsSingleTesting(true);
-    toast({ title: "Starting Single Question Test..." });
+    setIsFourQuestionTesting(true);
+    toast({ title: "Starting 4-Question Test..." });
 
     try {
-      const targetWord = allWords.find(word => word.text.startsWith("あ"));
+      const shuffled = [...allWords].sort(() => 0.5 - Math.random());
+      const selectedWords = shuffled.slice(0, 4);
 
-      if (!targetWord) {
-        toast({
-          variant: "destructive",
-          title: "Test Failed",
-          description: "「あ」で始まる単語が見つかりませんでした。",
-        });
-        setIsSingleTesting(false);
-        return;
-      }
+      const promises = selectedWords.map(word => {
+        const isCorrect = Math.random() > 0.3; // ~70% chance to be correct
+        return updateWordStats(firestore, user.uid, word.id, isCorrect);
+      });
+      
+      await Promise.all(promises);
 
-      await updateWordStats(firestore, user.uid, targetWord.id, true); // Mark as correct
       toast({
-        title: "Single Question Test Complete",
-        description: `Marked "${targetWord.text}" as correct.`,
+        title: "4-Question Test Complete",
+        description: `Simulated answers for 4 random words.`,
       });
     } catch (error) {
-      console.error("Single question test failed:", error);
+      console.error("4-question test failed:", error);
       toast({
         variant: "destructive",
         title: "Test Failed",
-        description: "An error occurred during the single question test.",
+        description: "An error occurred during the 4-question test.",
       });
     } finally {
-      setIsSingleTesting(false);
+      setIsFourQuestionTesting(false);
     }
   };
 
@@ -243,8 +240,8 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
         isAutoTesting={isAutoTesting}
         onAnonymousTest={handleAnonymousTest}
         isAnonymousTesting={isAnonymousTesting}
-        onSingleQuestionTest={handleSingleQuestionTest}
-        isSingleTesting={isSingleTesting}
+        onFourQuestionTest={handleFourQuestionTest}
+        isFourQuestionTesting={isFourQuestionTesting}
     />
   );
 }
