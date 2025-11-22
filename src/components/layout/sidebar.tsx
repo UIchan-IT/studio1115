@@ -183,11 +183,22 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
     toast({ title: "Starting Single Question Test..." });
 
     try {
-      const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
-      await updateWordStats(firestore, user.uid, randomWord.id, true); // Mark as correct
+      const targetWord = allWords.find(word => word.text.startsWith("あ"));
+
+      if (!targetWord) {
+        toast({
+          variant: "destructive",
+          title: "Test Failed",
+          description: "「あ」で始まる単語が見つかりませんでした。",
+        });
+        setIsSingleTesting(false);
+        return;
+      }
+
+      await updateWordStats(firestore, user.uid, targetWord.id, true); // Mark as correct
       toast({
         title: "Single Question Test Complete",
-        description: `Marked "${randomWord.text}" as correct.`,
+        description: `Marked "${targetWord.text}" as correct.`,
       });
     } catch (error) {
       console.error("Single question test failed:", error);
