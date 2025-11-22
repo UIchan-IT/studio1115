@@ -42,7 +42,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
 
   useEffect(() => {
     if (words.length >= 4 && user) {
-        const generatedRounds = generateMatchingRounds(words);
+        const generatedRounds = generateMatchingRounds(words).slice(0, 2);
         setRounds(generatedRounds);
         
         const wordsInRounds = new Set<Word>();
@@ -99,7 +99,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   }
 
   const handleSubmit = () => {
-    if (!user) return;
+    if (!user || !currentRound) return;
     setIsSubmitted(true);
     const promises = currentRound.words.map(word => {
         const isCorrect = matches[word.id] === word.id;
@@ -113,6 +113,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
         setCurrentRoundIndex(prev => prev + 1);
         setIsSubmitted(false);
         setMatches({});
+        setSelectedWordId(null);
+        setSelectedDefinitionId(null);
     } else {
         setIsComplete(true);
     }
@@ -120,7 +122,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
 
   const handleRestart = () => {
      if (words.length >= 4) {
-        setRounds(generateMatchingRounds(words));
+        setRounds(generateMatchingRounds(words).slice(0, 2));
     }
     setCurrentRoundIndex(0);
     setMatches({});
@@ -156,7 +158,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     );
   }
 
-  const allMatched = Object.keys(matches).length === 4;
+  const allMatched = Object.keys(matches).length === currentRound.words.length;
 
   return (
     <div className="w-full max-w-4xl">
@@ -183,8 +185,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                         "w-full h-auto py-4 justify-center text-center",
                                         isSelected && "ring-2 ring-primary",
                                         isMatched && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isMatched && isCorrect && "bg-green-500 border-green-700 text-white hover:bg-green-600",
-                                        isSubmitted && isMatched && !isCorrect && "bg-red-500 border-red-700 text-white hover:bg-red-600"
+                                        isSubmitted && isCorrect && "bg-green-500 border-green-700 text-white hover:bg-green-600",
+                                        isSubmitted && !isCorrect && "bg-red-500 border-red-700 text-white hover:bg-red-600"
                                     )}
                                     disabled={isSubmitted && isMatched}
                                 >
@@ -233,7 +235,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                  </Button>
             ) : (
                  <Button onClick={handleNextRound} size="lg">
-                    Next Round
+                    {currentRoundIndex < rounds.length -1 ? "Next Round" : "Finish Quiz"}
                  </Button>
             )}
         </div>
