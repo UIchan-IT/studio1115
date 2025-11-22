@@ -228,16 +228,17 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                 </div>
             </CardContent>
         </Card>
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center items-center mt-6 space-x-4">
             {!isSubmitted ? (
                  <Button onClick={handleSubmit} disabled={!allMatched} size="lg">
                     Check Answers
                  </Button>
-            ) : (
-                 <Button onClick={handleNextRound} size="lg">
-                    {currentRoundIndex < rounds.length -1 ? "Next Round" : "Finish Quiz"}
-                 </Button>
-            )}
+            ) : null}
+            
+             <Button onClick={handleNextRound} size="lg" variant={isSubmitted ? "default" : "outline"}>
+                <Shuffle className="mr-2 h-4 w-4"/>
+                {currentRoundIndex < rounds.length -1 ? "Next Round" : "Finish Quiz"}
+             </Button>
         </div>
     </div>
   );
