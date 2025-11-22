@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -10,6 +11,7 @@ import {
   Bot,
   Loader2,
   UserX,
+  FileQuestion,
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
@@ -26,13 +28,17 @@ export default function SidebarNav({
    isAutoTesting,
    onAnonymousTest,
    isAnonymousTesting,
+   onSingleQuestionTest,
+   isSingleTesting,
 }: {
     wordLists: WordList[],
     isMobile: boolean,
     onAutoTest: () => void,
     isAutoTesting: boolean,
     onAnonymousTest: () => void,
-    isAnonymousTesting: boolean
+    isAnonymousTesting: boolean,
+    onSingleQuestionTest: () => void,
+    isSingleTesting: boolean,
 }) {
   const pathname = usePathname();
   const { isSidebarOpen } = useSidebar();
@@ -41,6 +47,8 @@ export default function SidebarNav({
     "fixed top-0 left-0 z-40 w-64 h-screen border-r bg-background transition-transform -translate-x-full sm:translate-x-0",
     isMobile && (isSidebarOpen ? "translate-x-0" : "-translate-x-full"),
   );
+
+  const isAnyTestRunning = isAutoTesting || isAnonymousTesting || isSingleTesting;
 
   return (
     <aside className={cn(sidebarClasses, isMobile && "w-full")}>
@@ -99,7 +107,7 @@ export default function SidebarNav({
              <Button
                 variant="outline"
                 onClick={onAutoTest}
-                disabled={isAutoTesting || isAnonymousTesting}
+                disabled={isAnyTestRunning}
                 className="w-full"
              >
                 {isAutoTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
@@ -108,12 +116,21 @@ export default function SidebarNav({
              <Button
                 variant="outline"
                 onClick={onAnonymousTest}
-                disabled={isAutoTesting || isAnonymousTesting}
+                disabled={isAnyTestRunning}
                 className="w-full"
              >
                 {isAnonymousTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserX className="mr-2 h-4 w-4" />}
                 Run Anonymous Test
              </Button>
+             <Button
+                variant="outline"
+                onClick={onSingleQuestionTest}
+                disabled={isAnyTestRunning}
+                className="w-full"
+              >
+                {isSingleTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileQuestion className="mr-2 h-4 w-4" />}
+                Run 1-Question Test
+              </Button>
         </div>
       </div>
     </aside>

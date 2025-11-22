@@ -1,3 +1,4 @@
+
 "use client";
 
 import SidebarNav from "./sidebar-nav";
@@ -28,6 +29,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
   const [wordsLoading, setWordsLoading] = useState(true);
   const [isAutoTesting, setIsAutoTesting] = useState(false);
   const [isAnonymousTesting, setIsAnonymousTesting] = useState(false);
+  const [isSingleTesting, setIsSingleTesting] = useState(false);
 
 
   const { data: myWordLists, loading: myListsLoading } = useCollection<WordList>(
@@ -168,6 +170,37 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
     }
   };
 
+  const handleSingleQuestionTest = async () => {
+    if (!user || allWords.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Cannot run test",
+        description: "No user or words available.",
+      });
+      return;
+    }
+    setIsSingleTesting(true);
+    toast({ title: "Starting Single Question Test..." });
+
+    try {
+      const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+      await updateWordStats(firestore, user.uid, randomWord.id, true); // Mark as correct
+      toast({
+        title: "Single Question Test Complete",
+        description: `Marked "${randomWord.text}" as correct.`,
+      });
+    } catch (error) {
+      console.error("Single question test failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Test Failed",
+        description: "An error occurred during the single question test.",
+      });
+    } finally {
+      setIsSingleTesting(false);
+    }
+  };
+
 
   const loading = myListsLoading || publicListsLoading || wordsLoading;
 
@@ -199,6 +232,8 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
         isAutoTesting={isAutoTesting}
         onAnonymousTest={handleAnonymousTest}
         isAnonymousTesting={isAnonymousTesting}
+        onSingleQuestionTest={handleSingleQuestionTest}
+        isSingleTesting={isSingleTesting}
     />
   );
 }
