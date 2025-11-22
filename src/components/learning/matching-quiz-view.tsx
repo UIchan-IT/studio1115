@@ -108,7 +108,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   }
 
   const handleSubmit = () => {
-    if (!user || !currentRound) return;
+    if (!user || !currentRound || isSubmitted) return;
     setIsSubmitted(true);
     
     const roundResults: SessionResult[] = [];
@@ -269,18 +269,18 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
             </CardContent>
         </Card>
         <div className="flex justify-center items-center mt-6 space-x-4">
-            {!isSubmitted ? (
-                 <Button onClick={handleSubmit} disabled={!allMatched} size="lg">
-                    Check Answers
-                 </Button>
-            ) : (
-             <Button onClick={handleNextRound} size="lg">
+            <Button onClick={handleSubmit} disabled={!allMatched || isSubmitted} size="lg">
+                Check Answers
+            </Button>
+            <Button onClick={handleNextRound} size="lg" variant="outline">
+                <Shuffle className="mr-2 h-4 w-4" />
                 {currentRoundIndex < rounds.length -1 ? "Next Round" : "Finish Quiz"}
-             </Button>
-            )}
+            </Button>
         </div>
     </div>
   );
 }
+
+    
 
     
