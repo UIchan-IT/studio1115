@@ -66,7 +66,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   const currentRound = rounds[currentRoundIndex];
 
   const handleWordSelect = (wordId: string) => {
-    if (isSubmitted) return;
+    if (isSubmitted || matches[wordId]) return;
     if (selectedWordId === wordId) {
         setSelectedWordId(null); // Deselect
     } else {
@@ -75,7 +75,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   };
 
   const handleDefinitionSelect = (defId: string) => {
-    if (isSubmitted) return;
+    if (isSubmitted || Object.values(matches).includes(defId)) return;
      if (selectedDefinitionId === defId) {
         setSelectedDefinitionId(null); // Deselect
     } else {
@@ -183,8 +183,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                         "w-full h-auto py-4 justify-center text-center",
                                         isSelected && "ring-2 ring-primary",
                                         isMatched && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isMatched && isCorrect && "bg-green-100 border-green-500 text-green-800",
-                                        isSubmitted && isMatched && !isCorrect && "bg-red-100 border-red-500 text-red-800"
+                                        isSubmitted && isMatched && isCorrect && "bg-green-100 border-green-500 text-green-800 hover:bg-green-100",
+                                        isSubmitted && isMatched && !isCorrect && "bg-red-100 border-red-500 text-red-800 hover:bg-red-100"
                                     )}
                                     disabled={isSubmitted && isMatched}
                                 >
@@ -196,12 +196,12 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                     {/* Definitions Column */}
                     <div className="space-y-4">
                        {currentRound.shuffledDefinitions.map(def => {
-                           const isMatched = Object.values(matches).includes(def.id);
+                           const isMatchedByAWord = Object.values(matches).includes(def.id);
                            const isSelected = selectedDefinitionId === def.id;
                            const matchedWordId = Object.keys(matches).find(key => matches[key] === def.id);
                            let isCorrect = false;
                            if (isSubmitted && matchedWordId) {
-                                isCorrect = def.id === matchedWordId;
+                               isCorrect = def.id === matchedWordId;
                            }
 
                            return (
@@ -212,11 +212,11 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                     className={cn(
                                         "w-full h-auto py-4 justify-start text-left whitespace-normal",
                                         isSelected && "ring-2 ring-primary",
-                                        isMatched && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isMatched && isCorrect && "bg-green-100 border-green-500 text-green-800",
-                                        isSubmitted && isMatched && !isCorrect && "bg-red-100 border-red-500 text-red-800"
+                                        isMatchedByAWord && !isSubmitted && "bg-muted text-muted-foreground",
+                                        isSubmitted && isMatchedByAWord && isCorrect && "bg-green-100 border-green-500 text-green-800 hover:bg-green-100",
+                                        isSubmitted && isMatchedByAWord && !isCorrect && "bg-red-100 border-red-500 text-red-800 hover:bg-red-100"
                                     )}
-                                    disabled={isSubmitted || isMatched}
+                                    disabled={isSubmitted || isMatchedByAWord}
                                 >
                                    {def.definition}
                                 </Button>
