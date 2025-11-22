@@ -6,7 +6,7 @@ import type { Word } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, X, RotateCw, Shuffle, GripVertical } from "lucide-react";
+import { Check, X, RotateCw } from "lucide-react";
 import { updateWordStats, initializeWordProgress } from "@/lib/firestore";
 import { useFirestore, useUser } from "@/firebase";
 
@@ -108,9 +108,10 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   }
 
   const handleSubmit = () => {
-    if (!user || !currentRound || isSubmitted) return;
+    if (!user || !currentRound || !allMatched) return;
+
+    // 1. Submit answers and update stats
     setIsSubmitted(true);
-    
     const roundResults: SessionResult[] = [];
     const promises = currentRound.words.map(word => {
         const isCorrect = matches[word.id] === word.id;
@@ -120,36 +121,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     
     setSessionResults(prev => [...prev, ...roundResults]);
     Promise.all(promises);
-  };
 
-  const handleNextRound = () => {
-    if (isSubmitted) { // If already submitted, just move to next round or finish
-      if (currentRoundIndex < rounds.length - 1) {
-          setCurrentRoundIndex(prev => prev + 1);
-          setIsSubmitted(false);
-          setMatches({});
-          setSelectedWordId(null);
-          setSelectedDefinitionId(null);
-      } else {
-          setIsComplete(true);
-      }
-      return;
-    }
-
-    // Submit the current round's answers before moving on
-    if (user && currentRound) {
-        setIsSubmitted(true);
-        const roundResults: SessionResult[] = [];
-        const promises = currentRound.words.map(word => {
-            const isCorrect = matches[word.id] === word.id;
-            roundResults.push({ word, isCorrect });
-            return updateWordStats(firestore, user.uid, word.id, isCorrect);
-        });
-        setSessionResults(prev => [...prev, ...roundResults]);
-        Promise.all(promises);
-    }
-
-    // Use a timeout to allow the user to see the results before moving on
+    // 2. Move to next round after a delay
     setTimeout(() => {
         if (currentRoundIndex < rounds.length - 1) {
             setCurrentRoundIndex(prev => prev + 1);
@@ -160,7 +133,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
         } else {
             setIsComplete(true);
         }
-    }, 1500); // 1.5 second delay
+    }, 1500); // 1.5 second delay to show results
   };
 
   const handleRestart = () => {
@@ -298,8 +271,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
             </CardContent>
         </Card>
         <div className="flex justify-center items-center mt-6 space-x-4">
-            <Button onClick={handleNextRound} disabled={!allMatched || (isSubmitted && !isComplete)} size="lg">
-                 {isSubmitted ? (currentRoundIndex < rounds.length -1 ? "Next Round" : "Finish Quiz") : "Check Answers"}
+            <Button onClick={handleSubmit} disabled={!allMatched || isSubmitted} size="lg">
+                 Check Answers
             </Button>
         </div>
     </div>
