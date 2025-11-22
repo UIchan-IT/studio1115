@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Book, Brain, FileUp, PlusCircle, Trash2 } from "lucide-react";
+import { Book, Brain, FileUp, PlusCircle, Trash2, Link2 } from "lucide-react";
 import type { WordList } from "@/lib/definitions";
 
 export default function WordListHeader({ wordList }: { wordList: WordList }) {
@@ -12,11 +12,17 @@ export default function WordListHeader({ wordList }: { wordList: WordList }) {
           Manage and learn the words in this list.
         </p>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap justify-start md:justify-end">
         <Button variant="outline" asChild>
           <Link href={`/lists/${wordList.id}/flashcards`}>
             <Book className="mr-2 h-4 w-4" />
             Flashcards
+          </Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href={`/lists/${wordList.id}/matching-quiz`}>
+            <Link2 className="mr-2 h-4 w-4" />
+            Matching
           </Link>
         </Button>
         <Button asChild>
