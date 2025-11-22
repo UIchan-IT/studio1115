@@ -183,8 +183,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                         "w-full h-auto py-4 justify-center text-center",
                                         isSelected && "ring-2 ring-primary",
                                         isMatched && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isMatched && isCorrect && "bg-green-100 border-green-500 text-green-800 hover:bg-green-100",
-                                        isSubmitted && isMatched && !isCorrect && "bg-red-100 border-red-500 text-red-800 hover:bg-red-100"
+                                        isSubmitted && isMatched && isCorrect && "bg-green-500 border-green-700 text-white hover:bg-green-600",
+                                        isSubmitted && isMatched && !isCorrect && "bg-red-500 border-red-700 text-white hover:bg-red-600"
                                     )}
                                     disabled={isSubmitted && isMatched}
                                 >
@@ -213,8 +213,8 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                                         "w-full h-auto py-4 justify-start text-left whitespace-normal",
                                         isSelected && "ring-2 ring-primary",
                                         isMatchedByAWord && !isSubmitted && "bg-muted text-muted-foreground",
-                                        isSubmitted && isMatchedByAWord && isCorrect && "bg-green-100 border-green-500 text-green-800 hover:bg-green-100",
-                                        isSubmitted && isMatchedByAWord && !isCorrect && "bg-red-100 border-red-500 text-red-800 hover:bg-red-100"
+                                        isSubmitted && isMatchedByAWord && isCorrect && "bg-green-500 border-green-700 text-white hover:bg-green-600",
+                                        isSubmitted && isMatchedByAWord && !isCorrect && "bg-red-500 border-red-700 text-white hover:bg-red-600"
                                     )}
                                     disabled={isSubmitted || isMatchedByAWord}
                                 >
