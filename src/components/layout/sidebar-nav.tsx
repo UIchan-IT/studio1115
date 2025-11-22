@@ -12,6 +12,7 @@ import {
   Loader2,
   UserX,
   FileQuestion,
+  History,
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
@@ -147,5 +148,10 @@ const mainNav = [
       href: "/review",
       label: "Review",
       icon: Target,
+    },
+    {
+      href: "/history",
+      label: "History",
+      icon: History,
     },
   ];
