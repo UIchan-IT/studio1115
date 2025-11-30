@@ -106,14 +106,17 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   }
 
   const handleSubmit = () => {
-    if (!user || !currentRound || !allMatched) return;
+    if (!currentRound) return;
 
     setIsSubmitted(true);
     const roundResults: SessionResult[] = [];
-    const promises = currentRound.words.map(word => {
+    currentRound.words.map(word => {
         const isCorrect = matches[word.id] === word.id;
         roundResults.push({ word, isCorrect });
-        // return updateWordStats(firestore, user.uid, word.id, isCorrect);
+        // Firestore update is deferred until restart
+        // if (user) {
+        //   updateWordStats(firestore, user.uid, word.id, isCorrect);
+        // }
     });
     
     const newSessionResults = [...sessionResults, ...roundResults];
@@ -124,8 +127,6 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     } catch (e) {
         console.error("Could not save session results to sessionStorage", e);
     }
-    
-    // Promise.all(promises);
   };
   
   const handleNextRound = () => {
@@ -140,7 +141,14 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     }
   }
 
-  const handleRestart = () => {
+  const handleRestart = async () => {
+     if (user && sessionResults.length > 0) {
+      const promises = sessionResults.map(({word, isCorrect}) => 
+        updateWordStats(firestore, user.uid, word.id, isCorrect)
+      );
+      await Promise.all(promises);
+    }
+
      if (words.length >= 4) {
         setRounds(generateMatchingRounds(words).slice(0, 1));
     }
