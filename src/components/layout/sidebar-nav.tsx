@@ -13,6 +13,7 @@ import {
   UserX,
   FileQuestion,
   History,
+  Shield,
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
@@ -52,6 +53,11 @@ export default function SidebarNav({
   );
 
   const isAnyTestRunning = isAutoTesting || isAnonymousTesting || isFourQuestionTesting;
+  
+  const currentMainNav = isAdmin
+    ? [...mainNav, { href: "/admin", label: "Admin", icon: Shield }]
+    : mainNav;
+
 
   return (
     <aside className={cn(sidebarClasses, isMobile && "w-full")}>
@@ -66,7 +72,7 @@ export default function SidebarNav({
           <nav className="grid items-start px-2 text-sm font-medium lg:px-4 py-4 space-y-4">
             <div className="space-y-1">
               <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Main</h3>
-              {mainNav.map((item) => (
+              {currentMainNav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

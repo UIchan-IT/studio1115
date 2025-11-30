@@ -1,0 +1,160 @@
+{
+  "entities": {
+    "AdminUser": {
+      "title": "Admin User",
+      "description": "Represents a user with admin privileges. The existence of a document with the user's UID in the /admins collection grants admin rights.",
+      "type": "object",
+      "properties": {
+        "grantedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time admin rights were granted."
+        }
+      },
+      "required": ["grantedAt"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile information.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the user profile was created."
+        },
+        "lastActive": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time the user was last active."
+        },
+        "wordListCount": {
+            "type": "number",
+            "description": "The number of word lists created by the user."
+        }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "WordList": {
+      "title": "Word List",
+      "description": "A collection of words for a user to study.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the word list."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the word list."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the word list was created."
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "The UID of the user who owns this list."
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Whether the word list is public and accessible to all users."
+        }
+      },
+      "required": ["name", "createdAt", "ownerId"]
+    },
+    "Word": {
+      "title": "Word",
+      "description": "A single vocabulary word within a word list. This entity does not contain user-specific progress.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "The word itself."
+        },
+        "definition": {
+          "type": "string",
+          "description": "The definition of the word."
+        },
+        "exampleSentences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Example sentences using the word."
+        }
+      },
+      "required": ["text", "definition"]
+    },
+    "UserWordProgress": {
+      "title": "User Word Progress",
+      "description": "Tracks a specific user's learning progress for a single word.",
+      "type": "object",
+      "properties": {
+        "masteryLevel": {
+          "type": "number",
+          "description": "The user's mastery level of the word (0-5)."
+        },
+        "lastReviewed": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the word was last reviewed by the user."
+        },
+        "mistakeCount": {
+          "type": "number",
+          "description": "How many times the user has made a mistake on this word."
+        },
+        "testCount": {
+            "type": "number",
+            "description": "How many times the user has been tested on this word."
+        }
+      },
+      "required": ["masteryLevel", "mistakeCount", "testCount"]
+    }
+  },
+  "auth": {
+    "providers": ["email"]
+  },
+  "firestore": {
+    "/admins/{userId}": {
+      "schema": {
+        "$ref": "#/entities/AdminUser"
+      },
+      "description": "Stores a list of admin user UIDs. The existence of a document signifies admin privileges."
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Stores user profile information."
+    },
+    "/users/{userId}/wordProgress/{wordId}": {
+      "schema": {
+        "$ref": "#/entities/UserWordProgress"
+      },
+      "description": "Sub-collection storing a user's progress for specific words. The wordId is the global ID of the word from a word list."
+    },
+    "/wordLists/{wordListId}": {
+      "schema": {
+        "$ref": "#/entities/WordList"
+      },
+      "description": "Top-level collection of all word lists, queryable by ownerId or isPublic."
+    },
+    "/wordLists/{wordListId}/words/{wordId}": {
+      "schema": {
+        "$ref": "#/entities/Word"
+      },
+      "description": "Sub-collection of words within a specific word list."
+    }
+  }
+}
