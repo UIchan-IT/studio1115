@@ -113,20 +113,19 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     const promises = currentRound.words.map(word => {
         const isCorrect = matches[word.id] === word.id;
         roundResults.push({ word, isCorrect });
-        return updateWordStats(firestore, user.uid, word.id, isCorrect);
+        // return updateWordStats(firestore, user.uid, word.id, isCorrect);
     });
     
     const newSessionResults = [...sessionResults, ...roundResults];
     setSessionResults(newSessionResults);
     
-    // Save to session storage immediately on submit
     try {
         sessionStorage.setItem('lastSessionResults', JSON.stringify(newSessionResults));
     } catch (e) {
         console.error("Could not save session results to sessionStorage", e);
     }
     
-    Promise.all(promises);
+    // Promise.all(promises);
   };
   
   const handleNextRound = () => {
@@ -294,5 +293,3 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     </div>
   );
 }
-
-    
