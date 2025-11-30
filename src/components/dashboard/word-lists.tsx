@@ -146,29 +146,6 @@ export default function WordLists({
                   </FormItem>
                 )}
               />
-               <FormField
-                control={form.control}
-                name="isPublic"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Make this list public
-                      </FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Anyone will be able to view and use this list.
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
                <DialogFooter>
                 <Button type="submit" disabled={isCreating}>
                   {isCreating ? "Creating..." : "Create List"}
