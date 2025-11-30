@@ -1,26 +1,53 @@
+
 "use client";
 
 import AppSidebar from "@/components/layout/sidebar";
 import AppHeader from "@/components/layout/header";
 import { SidebarProvider } from "@/hooks/use-sidebar.tsx";
 import { cn } from "@/lib/utils";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
   const router = useRouter();
+  const firestore = useFirestore();
 
   useEffect(() => {
-    // Redirect only if not loading, user is null, and user is not anonymous.
-    // Anonymous users are allowed for debugging/testing purposes.
-    if (!loading && !user) {
+    if (loading) return;
+
+    if (!user) {
       router.push("/login");
+      return;
     }
-  }, [user, loading, router]);
+
+    // Check if user profile exists, if not create it.
+    // This handles cases where user creation might have failed in the past.
+    const checkAndCreateUserProfile = async () => {
+      const userDocRef = doc(firestore, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        try {
+          await setDoc(userDocRef, {
+            email: user.email,
+            displayName: user.displayName,
+            createdAt: serverTimestamp(),
+            lastActive: serverTimestamp(),
+          });
+        } catch (error) {
+          console.error("Failed to create user profile on-the-fly:", error);
+        }
+      }
+    };
+
+    checkAndCreateUserProfile();
+
+  }, [user, loading, router, firestore]);
 
 
   // Show skeleton loader while checking for auth state or if there's no user yet (and not anonymous)
