@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -34,16 +35,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import type { WordList, Word } from "@/lib/definitions";
 import { createWordList } from "@/lib/firestore";
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, useAdmin } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "List name is required." }),
   description: z.string().optional(),
-  isPublic: z.boolean().default(true),
 });
 
 export default function WordLists({
@@ -52,6 +51,7 @@ export default function WordLists({
   initialWordLists: (WordList & { words: Word[] })[];
 }) {
   const { user } = useUser();
+  const { isAdmin } = useAdmin();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
@@ -62,7 +62,6 @@ export default function WordLists({
     defaultValues: {
       name: "",
       description: "",
-      isPublic: true,
     },
   });
 
@@ -107,12 +106,14 @@ export default function WordLists({
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold font-headline">Your Lists</h2>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create New List
-            </Button>
-          </DialogTrigger>
+          {isAdmin && (
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create New List
+              </Button>
+            </DialogTrigger>
+          )}
         </div>
         <DialogContent>
           <DialogHeader>
@@ -185,15 +186,18 @@ export default function WordLists({
           <Card className="col-span-full flex flex-col items-center justify-center text-center p-8 border-2 border-dashed">
             <p className="text-lg font-medium">No word lists yet!</p>
             <p className="text-muted-foreground">Get started by creating your first list.</p>
-            <DialogTrigger asChild>
-                <Button className="mt-4">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create a List
-                </Button>
-            </DialogTrigger>
+            {isAdmin && (
+                <DialogTrigger asChild>
+                    <Button className="mt-4">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create a List
+                    </Button>
+                </DialogTrigger>
+            )}
           </Card>
         )}
       </section>
     </Dialog>
   );
 }
+
