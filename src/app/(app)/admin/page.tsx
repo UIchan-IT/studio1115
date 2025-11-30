@@ -95,7 +95,7 @@ export default function AdminPage() {
                                         <TableCell className="font-medium">{user.email}</TableCell>
                                         <TableCell>{user.displayName || 'N/A'}</TableCell>
                                         <TableCell className="text-muted-foreground">
-                                           {user.createdAt ? formatDistanceToNow(user.createdAt.toDate(), { addSuffix: true }) : 'Unknown'}
+                                           {user.createdAt && 'toDate' in user.createdAt ? formatDistanceToNow(user.createdAt.toDate(), { addSuffix: true }) : 'Unknown'}
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild variant="outline" size="sm">
