@@ -58,7 +58,10 @@ export default function MatchingQuizPage() {
                 Back to list
               </Link>
             </Button>
-            <h1 className="text-3xl font-bold font-headline">Matching Quiz</h1>
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-3xl font-bold font-headline">Matching Quiz</h1>
+              <span className="font-mono text-xs text-muted-foreground">4x4 v0.1.1</span>
+            </div>
             <p className="text-muted-foreground">Test your knowledge on <span className="font-semibold text-foreground">{wordList?.name}</span></p>
           </header>
           <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
@@ -81,7 +84,10 @@ export default function MatchingQuizPage() {
               Back to {wordList.name}
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold font-headline">Matching Quiz</h1>
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-3xl font-bold font-headline">Matching Quiz</h1>
+            <span className="font-mono text-xs text-muted-foreground">4x4 v0.1.1</span>
+          </div>
           <p className="text-muted-foreground">Match the words to their definitions from the list: <span className="font-semibold text-foreground">{wordList.name}</span></p>
         </header>
       <div className="flex-grow flex items-center justify-center">
