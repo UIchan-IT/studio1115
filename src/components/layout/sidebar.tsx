@@ -2,7 +2,7 @@
 "use client";
 
 import SidebarNav from "./sidebar-nav";
-import { useCollection, useUser, useFirestore, useAuth } from "@/firebase";
+import { useCollection, useUser, useFirestore, useAuth, useAdmin } from "@/firebase";
 import type { WordList, Word } from "@/lib/definitions";
 import { Skeleton } from "../ui/skeleton";
 import { useMemo, useState, useEffect } from "react";
@@ -22,6 +22,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
   const firestore = useFirestore();
   const auth = useAuth();
   const router = useRouter();
+  const { isAdmin, loading: adminLoading } = useAdmin();
 
   const { toast } = useToast();
   
@@ -210,7 +211,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
   };
 
 
-  const loading = myListsLoading || publicListsLoading || wordsLoading;
+  const loading = myListsLoading || publicListsLoading || wordsLoading || adminLoading;
 
   if (loading && !isMobile) {
     return (
@@ -236,6 +237,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
     <SidebarNav
         wordLists={allWordLists}
         isMobile={isMobile}
+        isAdmin={isAdmin}
         onAutoTest={handleAutoTest}
         isAutoTesting={isAutoTesting}
         onAnonymousTest={handleAnonymousTest}

@@ -25,6 +25,7 @@ import { Button } from "../ui/button";
 export default function SidebarNav({
    wordLists,
    isMobile,
+   isAdmin,
    onAutoTest,
    isAutoTesting,
    onAnonymousTest,
@@ -34,6 +35,7 @@ export default function SidebarNav({
 }: {
     wordLists: WordList[],
     isMobile: boolean,
+    isAdmin: boolean,
     onAutoTest: () => void,
     isAutoTesting: boolean,
     onAnonymousTest: () => void,
@@ -103,36 +105,38 @@ export default function SidebarNav({
             )}
           </nav>
         </ScrollArea>
-        <div className="mt-auto p-4 space-y-2 border-t">
-             <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Debug</h3>
-             <Button
-                variant="outline"
-                onClick={onAutoTest}
-                disabled={isAnyTestRunning}
-                className="w-full"
-             >
-                {isAutoTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
-                Run Auto-Test
-             </Button>
-             <Button
-                variant="outline"
-                onClick={onAnonymousTest}
-                disabled={isAnyTestRunning}
-                className="w-full"
-             >
-                {isAnonymousTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserX className="mr-2 h-4 w-4" />}
-                Run Anonymous Test
-             </Button>
-             <Button
-                variant="outline"
-                onClick={onFourQuestionTest}
-                disabled={isAnyTestRunning}
-                className="w-full"
-              >
-                {isFourQuestionTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileQuestion className="mr-2 h-4 w-4" />}
-                Run 4-Question Test
-              </Button>
-        </div>
+        {isAdmin && (
+          <div className="mt-auto p-4 space-y-2 border-t">
+               <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Debug</h3>
+               <Button
+                  variant="outline"
+                  onClick={onAutoTest}
+                  disabled={isAnyTestRunning}
+                  className="w-full"
+               >
+                  {isAutoTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
+                  Run Auto-Test
+               </Button>
+               <Button
+                  variant="outline"
+                  onClick={onAnonymousTest}
+                  disabled={isAnyTestRunning}
+                  className="w-full"
+               >
+                  {isAnonymousTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserX className="mr-2 h-4 w-4" />}
+                  Run Anonymous Test
+               </Button>
+               <Button
+                  variant="outline"
+                  onClick={onFourQuestionTest}
+                  disabled={isAnyTestRunning}
+                  className="w-full"
+                >
+                  {isFourQuestionTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileQuestion className="mr-2 h-4 w-4" />}
+                  Run 4-Question Test
+                </Button>
+          </div>
+        )}
       </div>
     </aside>
   );

@@ -1,5 +1,18 @@
 {
   "entities": {
+    "AdminUser": {
+      "title": "Admin User",
+      "description": "Represents a user with admin privileges. The existence of a document with the user's UID in the /admins collection grants admin rights.",
+      "type": "object",
+      "properties": {
+        "grantedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time admin rights were granted."
+        }
+      },
+      "required": ["grantedAt"]
+    },
     "UserProfile": {
       "title": "User Profile",
       "description": "Represents a user's profile information.",
@@ -104,6 +117,12 @@
     "providers": ["email"]
   },
   "firestore": {
+    "/admins/{userId}": {
+      "schema": {
+        "$ref": "#/entities/AdminUser"
+      },
+      "description": "Stores a list of admin user UIDs. The existence of a document signifies admin privileges."
+    },
     "/users/{userId}": {
       "schema": {
         "$ref": "#/entities/UserProfile"
