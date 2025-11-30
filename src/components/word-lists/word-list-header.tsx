@@ -25,12 +25,6 @@ export default function WordListHeader({ wordList }: { wordList: WordList }) {
             Matching
           </Link>
         </Button>
-        <Button asChild>
-          <Link href={`/lists/${wordList.id}/quiz`}>
-            <Brain className="mr-2 h-4 w-4" />
-            Start Quiz
-          </Link>
-        </Button>
       </div>
     </header>
   );
