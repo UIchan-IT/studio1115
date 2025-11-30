@@ -43,7 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   name: z.string().min(1, { message: "List name is required." }),
   description: z.string().optional(),
-  isPublic: z.boolean().default(false),
+  isPublic: z.boolean().default(true),
 });
 
 export default function WordLists({
@@ -62,7 +62,7 @@ export default function WordLists({
     defaultValues: {
       name: "",
       description: "",
-      isPublic: false,
+      isPublic: true,
     },
   });
 
@@ -81,7 +81,7 @@ export default function WordLists({
         name: values.name,
         description: values.description || "",
         ownerId: user.uid,
-        isPublic: values.isPublic,
+        isPublic: true,
       });
       toast({
         title: "List Created",
@@ -155,6 +155,7 @@ export default function WordLists({
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
