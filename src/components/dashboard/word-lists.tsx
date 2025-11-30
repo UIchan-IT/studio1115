@@ -177,7 +177,7 @@ export default function WordLists({
           </Form>
         </DialogContent>
         {initialWordLists.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             {initialWordLists.map((list) => (
               <Card key={list.id} className="flex flex-col">
                 <CardHeader>
@@ -204,7 +204,7 @@ export default function WordLists({
             ))}
           </div>
         ) : (
-          <Card className="md:col-span-3 flex flex-col items-center justify-center text-center p-8 border-2 border-dashed">
+          <Card className="col-span-full flex flex-col items-center justify-center text-center p-8 border-2 border-dashed">
             <p className="text-lg font-medium">No word lists yet!</p>
             <p className="text-muted-foreground">Get started by creating your first list.</p>
             <DialogTrigger asChild>

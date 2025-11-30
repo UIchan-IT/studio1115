@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { collection, getDocs } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import { useState, useEffect } from "react";
+import WeakWords from "@/components/dashboard/weak-words";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface WordListWithWords extends WordList {
   words: Word[];
@@ -95,6 +97,22 @@ export default function DashboardPage() {
     const myListsWithWords = wordListsWithWords.filter(l => l.ownerId === user?.uid);
     return calculateStats(myListsWithWords, userProgressData);
   }, [wordListsWithWords, userProgressData, user]);
+
+  const weakWords = useMemo(() => {
+    if (!userProgressData || wordListsWithWords.length === 0) return [];
+    
+    const allWords = wordListsWithWords.flatMap(list => list.words || []);
+    const progressMap = new Map(userProgressData.map(p => [p.id, p]));
+    
+    return allWords
+      .map(word => ({
+        ...word,
+        progress: progressMap.get(word.id)
+      }))
+      .filter(word => word.progress && word.progress.testCount > 0) // Must have been tested at least once
+      .sort((a, b) => (b.progress?.mistakeCount ?? 0) - (a.progress?.mistakeCount ?? 0))
+      .slice(0, 10);
+  }, [wordListsWithWords, userProgressData]);
   
   const isLoading = userLoading || myListsLoading || publicListsLoading || wordsLoading || progressLoading;
 
@@ -111,16 +129,16 @@ export default function DashboardPage() {
               <Skeleton className="h-24" />
               <Skeleton className="h-24" />
            </div>
-           <div>
-              <div className="flex items-center justify-between mb-4">
-                  <Skeleton className="h-9 w-48" />
-                  <Skeleton className="h-10 w-40" />
+           <div className="grid gap-4 md:grid-cols-3">
+              <div className="md:col-span-2">
+                <Skeleton className="h-9 w-48 mb-4" />
+                <Skeleton className="h-56" />
               </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                    <Skeleton className="h-56" />
-                    <Skeleton className="h-56" />
-                </div>
+              <div>
+                <Skeleton className="h-9 w-48 mb-4" />
+                <Skeleton className="h-56" />
               </div>
+            </div>
          </div>
        </div>
     )
@@ -139,7 +157,22 @@ export default function DashboardPage() {
 
         <StatsCards stats={stats} />
         
-        <WordLists initialWordLists={wordListsWithWords} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2">
+                <WordLists initialWordLists={wordListsWithWords} />
+            </div>
+            <div>
+                 <h2 className="text-2xl font-bold font-headline mb-4">Weak Words</h2>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">Top 10 to Review</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                       <WeakWords words={weakWords} />
+                    </CardContent>
+                 </Card>
+            </div>
+        </div>
 
       </div>
     </div>
