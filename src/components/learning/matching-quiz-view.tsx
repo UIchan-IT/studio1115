@@ -21,9 +21,9 @@ type MatchingRound = {
 function generateMatchingRounds(words: Word[]): MatchingRound[] {
   const shuffledWords = [...words].sort(() => 0.5 - Math.random());
   const rounds: MatchingRound[] = [];
-  for (let i = 0; i < shuffledWords.length; i += 4) {
-    const roundWords = shuffledWords.slice(i, i + 4);
-    if (roundWords.length === 4) {
+  for (let i = 0; i < shuffledWords.length; i += 10) {
+    const roundWords = shuffledWords.slice(i, i + 10);
+    if (roundWords.length === 10) {
         const shuffledDefinitions = [...roundWords]
             .sort(() => 0.5 - Math.random())
             .map(w => ({ id: w.id, definition: w.definition }));
@@ -47,7 +47,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   const [sessionResults, setSessionResults] = useState<SessionResult[]>([]);
 
   useEffect(() => {
-    if (words.length >= 4 && user) {
+    if (words.length >= 10 && user) {
         const generatedRounds = generateMatchingRounds(words).slice(0, 1);
         setRounds(generatedRounds);
         
@@ -149,7 +149,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
       await Promise.all(promises);
     }
 
-     if (words.length >= 4) {
+     if (words.length >= 10) {
         setRounds(generateMatchingRounds(words).slice(0, 1));
     }
     setCurrentRoundIndex(0);
@@ -224,7 +224,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     <div className="w-full max-w-4xl">
         <Card>
             <CardContent className="p-6">
-                <div className="grid grid-cols-2 gap-4 md:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     {/* Words Column */}
                     <div className="space-y-4">
                         {currentRound.words.map(word => {
@@ -301,3 +301,5 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     </div>
   );
 }
+
+    

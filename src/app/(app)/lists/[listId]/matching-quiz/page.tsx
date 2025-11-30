@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useDoc, useCollection, useUser } from "@/firebase";
@@ -48,7 +49,7 @@ export default function MatchingQuizPage() {
     );
   }
 
-  if (!wordList || words.length < 4) {
+  if (!wordList || words.length < 10) {
     return (
        <div className="container mx-auto">
          <header className="mb-8">
@@ -60,13 +61,13 @@ export default function MatchingQuizPage() {
             </Button>
             <div className="flex items-baseline gap-2">
               <h1 className="text-3xl font-bold font-headline">Matching Quiz</h1>
-              <span className="font-mono text-xs text-muted-foreground">4x4 v0.1.1</span>
+              <span className="font-mono text-xs text-muted-foreground">10x10 v0.1.1</span>
             </div>
             <p className="text-muted-foreground">Test your knowledge on <span className="font-semibold text-foreground">{wordList?.name}</span></p>
           </header>
           <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
             <p className="text-lg font-medium">Not Enough Words for a Matching Quiz</p>
-            <p className="text-muted-foreground">You need at least 4 words in this list to start this quiz.</p>
+            <p className="text-muted-foreground">You need at least 10 words in this list to start this quiz.</p>
             <Button asChild className="mt-4">
               <Link href={`/lists/${wordList?.id ?? '/dashboard'}`}>Add More Words</Link>
             </Button>
@@ -86,7 +87,7 @@ export default function MatchingQuizPage() {
           </Button>
           <div className="flex items-baseline gap-2">
             <h1 className="text-3xl font-bold font-headline">Matching Quiz</h1>
-            <span className="font-mono text-xs text-muted-foreground">4x4 v0.1.1</span>
+            <span className="font-mono text-xs text-muted-foreground">10x10 v0.1.1</span>
           </div>
           <p className="text-muted-foreground">Match the words to their definitions from the list: <span className="font-semibold text-foreground">{wordList.name}</span></p>
         </header>
@@ -96,3 +97,5 @@ export default function MatchingQuizPage() {
     </div>
   );
 }
+
+    
