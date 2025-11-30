@@ -48,7 +48,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
 
   useEffect(() => {
     if (words.length >= 4 && user) {
-        const generatedRounds = generateMatchingRounds(words).slice(0, 2);
+        const generatedRounds = generateMatchingRounds(words).slice(0, 1);
         setRounds(generatedRounds);
         
         const wordsInRounds = new Set<Word>();
@@ -141,7 +141,7 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
 
   const handleRestart = () => {
      if (words.length >= 4) {
-        setRounds(generateMatchingRounds(words).slice(0, 2));
+        setRounds(generateMatchingRounds(words).slice(0, 1));
     }
     setCurrentRoundIndex(0);
     setMatches({});
@@ -213,7 +213,6 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
 
   return (
     <div className="w-full max-w-4xl">
-        <p className="text-sm text-muted-foreground text-center mb-4">Round {currentRoundIndex + 1} of {rounds.length}</p>
         <Card>
             <CardContent className="p-6">
                 <div className="grid grid-cols-2 gap-4 md:gap-8">
