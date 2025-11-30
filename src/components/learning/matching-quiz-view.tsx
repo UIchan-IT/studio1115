@@ -108,7 +108,6 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
   const handleSubmit = () => {
     if (!user || !currentRound || !allMatched) return;
 
-    // 1. Submit answers and update stats
     setIsSubmitted(true);
     const roundResults: SessionResult[] = [];
     const promises = currentRound.words.map(word => {
@@ -117,7 +116,16 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
         return updateWordStats(firestore, user.uid, word.id, isCorrect);
     });
     
-    setSessionResults(prev => [...prev, ...roundResults]);
+    const newSessionResults = [...sessionResults, ...roundResults];
+    setSessionResults(newSessionResults);
+    
+    // Save to session storage immediately on submit
+    try {
+        sessionStorage.setItem('lastSessionResults', JSON.stringify(newSessionResults));
+    } catch (e) {
+        console.error("Could not save session results to sessionStorage", e);
+    }
+    
     Promise.all(promises);
   };
   
@@ -129,12 +137,6 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
         setSelectedWordId(null);
         setSelectedDefinitionId(null);
     } else {
-        // Save results to sessionStorage before completing
-        try {
-            sessionStorage.setItem('lastSessionResults', JSON.stringify(sessionResults));
-        } catch (e) {
-            console.error("Could not save session results to sessionStorage", e);
-        }
         setIsComplete(true);
     }
   }
@@ -292,3 +294,5 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     </div>
   );
 }
+
+    
