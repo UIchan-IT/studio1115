@@ -3,6 +3,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import packageJson from '../../package.json';
 
 export const metadata: Metadata = {
   title: 'Lexical Leap',
@@ -14,6 +15,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const appVersion = packageJson.version;
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -27,6 +29,9 @@ export default function RootLayout({
           {children}
         </FirebaseClientProvider>
         <Toaster />
+        <div className="fixed bottom-4 right-4 z-50 rounded-full bg-background/80 px-3 py-1 text-xs font-mono text-muted-foreground shadow-md backdrop-blur-sm">
+          v{appVersion}
+        </div>
       </body>
     </html>
   );
