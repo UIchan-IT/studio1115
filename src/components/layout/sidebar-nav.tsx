@@ -12,7 +12,6 @@ import {
   Loader2,
   UserX,
   FileQuestion,
-  History,
   Shield,
 } from "lucide-react";
 
@@ -158,10 +157,5 @@ const mainNav = [
       href: "/review",
       label: "Review",
       icon: Target,
-    },
-    {
-      href: "/history",
-      label: "History",
-      icon: History,
     },
   ];

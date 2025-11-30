@@ -6,7 +6,7 @@ import type { Word, SessionResult } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, X, RotateCw, History } from "lucide-react";
+import { Check, X, RotateCw } from "lucide-react";
 import { updateWordStats, initializeWordProgress } from "@/lib/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
@@ -197,10 +197,6 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
                     <Button onClick={handleRestart}>
                         <RotateCw className="mr-2 h-4 w-4" />
                         Play Again
-                    </Button>
-                    <Button variant="outline" onClick={() => router.push('/history')}>
-                        <History className="mr-2 h-4 w-4" />
-                        View Full History
                     </Button>
                 </div>
             </CardContent>
