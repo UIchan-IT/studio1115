@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, X, RotateCw } from "lucide-react";
-import { updateWordStats, initializeWordProgress } from "@/lib/firestore";
+import { updateWordStats, initializeWordProgress, awardBadge } from "@/lib/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
 
@@ -105,27 +105,24 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
       setMatches(newMatches);
   }
 
-  const handleSubmit = () => {
-    if (!currentRound) return;
+  const handleSubmit = async () => {
+    if (!currentRound || !user) return;
 
     setIsSubmitted(true);
     const roundResults: SessionResult[] = [];
-    currentRound.words.map(word => {
+    currentRound.words.forEach(word => {
         const isCorrect = matches[word.id] === word.id;
         roundResults.push({ word, isCorrect });
-        // Firestore update is deferred until restart
-        // if (user) {
-        //   updateWordStats(firestore, user.uid, word.id, isCorrect);
-        // }
     });
     
     const newSessionResults = [...sessionResults, ...roundResults];
     setSessionResults(newSessionResults);
-    
-    try {
-        sessionStorage.setItem('lastSessionResults', JSON.stringify(newSessionResults));
-    } catch (e) {
-        console.error("Could not save session results to sessionStorage", e);
+
+    // Defer stats update to the end of the session
+    // Check for perfect score badge
+    const correctCount = roundResults.filter(r => r.isCorrect).length;
+    if (correctCount === currentRound.words.length && correctCount > 0) {
+        await awardBadge(firestore, user.uid, 'perfect-score');
     }
   };
   
@@ -297,5 +294,3 @@ export default function MatchingQuizView({ words }: { words: Word[] }) {
     </div>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 export const UserWordProgressSchema = z.object({
@@ -46,3 +47,17 @@ export const SessionResultSchema = z.object({
 });
 
 export type SessionResult = z.infer<typeof SessionResultSchema>;
+
+export const BadgeSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    icon: z.any(), // Lucide icon component
+});
+export type Badge = z.infer<typeof BadgeSchema>;
+
+export const UserBadgeSchema = z.object({
+    id: z.string(), // This will be the badge ID
+    earnedOn: z.any(), // serverTimestamp
+});
+export type UserBadge = z.infer<typeof UserBadgeSchema>;

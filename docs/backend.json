@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "AdminUser": {
@@ -111,7 +112,40 @@
         }
       },
       "required": ["masteryLevel", "mistakeCount", "testCount"]
-    }
+    },
+    "Badge": {
+        "title": "Badge",
+        "description": "Represents an achievable badge in the system.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the badge."
+          },
+          "description": {
+            "type": "string",
+            "description": "How to earn the badge."
+          },
+          "icon": {
+            "type": "string",
+            "description": "The name of the Lucide icon for the badge."
+          }
+        },
+        "required": ["name", "description", "icon"]
+      },
+      "UserBadge": {
+        "title": "User Badge",
+        "description": "Represents a badge earned by a user. The document ID is the badge ID.",
+        "type": "object",
+        "properties": {
+          "earnedOn": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time the badge was earned."
+          }
+        },
+        "required": ["earnedOn"]
+      }
   },
   "auth": {
     "providers": ["email"]
@@ -134,6 +168,12 @@
         "$ref": "#/entities/UserWordProgress"
       },
       "description": "Sub-collection storing a user's progress for specific words. The wordId is the global ID of the word from a word list."
+    },
+    "/users/{userId}/badges/{badgeId}": {
+        "schema": {
+          "$ref": "#/entities/UserBadge"
+        },
+        "description": "Sub-collection storing badges a user has earned. The document ID corresponds to a badge in the global badge list."
     },
     "/wordLists/{wordListId}": {
       "schema": {

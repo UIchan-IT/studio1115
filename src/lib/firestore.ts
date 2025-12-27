@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -10,6 +11,7 @@ import {
   updateDoc,
   increment,
   setDoc,
+  getDoc,
   type Firestore,
 } from "firebase/firestore";
 
@@ -49,7 +51,7 @@ export const addWords = async (db: Firestore, listId: string, words: { text: str
     return batch.commit();
 }
 
-export const deleteWords = async (db: Firestore, listId: string, wordIds: string[]) => {
+export const deleteWords = async (db: Firestore, listId:string, wordIds: string[]) => {
     const batch = writeBatch(db);
     wordIds.forEach(wordId => {
         const docRef = doc(db, "wordLists", listId, "words", wordId);
@@ -85,4 +87,17 @@ export const initializeWordProgress = async (db: Firestore, userId: string, word
         testCount: 0,
         lastReviewed: null,
     }, { merge: true });
+};
+
+// Badge functions
+export const awardBadge = async (db: Firestore, userId: string, badgeId: string) => {
+    const badgeRef = doc(db, "users", userId, "badges", badgeId);
+    const badgeDoc = await getDoc(badgeRef);
+
+    // Award badge only if it hasn't been earned before
+    if (!badgeDoc.exists()) {
+        return setDoc(badgeRef, {
+            earnedOn: serverTimestamp(),
+        });
+    }
 };
