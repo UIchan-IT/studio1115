@@ -33,9 +33,9 @@
           "format": "date-time",
           "description": "The date and time the user profile was created."
         },
-        "learnedWordsCount": {
+        "totalTestCount": {
           "type": "number",
-          "description": "The total number of words the user has mastered."
+          "description": "The total number of tests the user has taken across all words."
         }
       },
       "required": ["email", "createdAt"]

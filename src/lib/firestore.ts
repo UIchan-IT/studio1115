@@ -91,15 +91,9 @@ export const updateWordStats = async (db: Firestore, userId: string, wordId: str
             }
 
             transaction.set(progressRef, updates, { merge: true });
-
-            // If the word is now "learned" (mastery level >= 4) for the first time, increment user's count
-            if (currentMastery < 4 && newMasteryLevel >= 4) {
-                 transaction.update(userRef, { learnedWordsCount: increment(1) });
-            }
-            // If the word was "learned" and is now not, decrement
-            else if (currentMastery >= 4 && newMasteryLevel < 4) {
-                 transaction.update(userRef, { learnedWordsCount: increment(-1) });
-            }
+            
+            // Always increment total test count for the user
+            transaction.update(userRef, { totalTestCount: increment(1) });
         });
     } catch (e) {
         console.error("Transaction failed: ", e);
@@ -109,12 +103,25 @@ export const updateWordStats = async (db: Firestore, userId: string, wordId: str
 
 export const initializeWordProgress = async (db: Firestore, userId: string, wordId: string) => {
     const progressRef = doc(db, "users", userId, "wordProgress", wordId);
-    return setDoc(progressRef, {
+    const userRef = doc(db, "users", userId);
+    
+    const progressDoc = await getDoc(progressRef);
+    if (progressDoc.exists()) {
+        return; // Already initialized
+    }
+    
+    await setDoc(progressRef, {
         masteryLevel: 0,
         mistakeCount: 0,
         testCount: 0,
         lastReviewed: null,
     }, { merge: true });
+
+    // Also initialize totalTestCount on the user profile if it doesn't exist
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists() || !userDoc.data()?.totalTestCount) {
+        await setDoc(userRef, { totalTestCount: 0 }, { merge: true });
+    }
 };
 
 // Badge functions

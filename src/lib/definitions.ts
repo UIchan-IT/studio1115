@@ -6,7 +6,7 @@ export const UserProfileSchema = z.object({
   email: z.string().email(),
   displayName: z.string().optional().nullable(),
   createdAt: z.any(),
-  learnedWordsCount: z.number().default(0),
+  totalTestCount: z.number().default(0),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
