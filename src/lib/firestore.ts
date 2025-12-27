@@ -12,6 +12,7 @@ import {
   increment,
   setDoc,
   getDoc,
+  runTransaction,
   type Firestore,
 } from "firebase/firestore";
 
@@ -64,20 +65,47 @@ export const deleteWords = async (db: Firestore, listId:string, wordIds: string[
 
 export const updateWordStats = async (db: Firestore, userId: string, wordId: string, isCorrect: boolean) => {
     const progressRef = doc(db, "users", userId, "wordProgress", wordId);
-    
-    const updates: any = {
-        lastReviewed: serverTimestamp(),
-        testCount: increment(1),
-    };
+    const userRef = doc(db, "users", userId);
 
-    if (!isCorrect) {
-        updates.mistakeCount = increment(1);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const progressDoc = await transaction.get(progressRef);
+            
+            let newMasteryLevel;
+            const currentMastery = progressDoc.exists() ? progressDoc.data().masteryLevel : 0;
+
+            if (isCorrect) {
+                newMasteryLevel = Math.min(currentMastery + 1, 5);
+            } else {
+                newMasteryLevel = Math.max(currentMastery - 1, 0);
+            }
+            
+            const updates: any = {
+                lastReviewed: serverTimestamp(),
+                testCount: increment(1),
+                masteryLevel: newMasteryLevel,
+            };
+
+            if (!isCorrect) {
+                updates.mistakeCount = increment(1);
+            }
+
+            transaction.set(progressRef, updates, { merge: true });
+
+            // If the word is now "learned" (mastery level >= 4) for the first time, increment user's count
+            if (currentMastery < 4 && newMasteryLevel >= 4) {
+                 transaction.update(userRef, { learnedWordsCount: increment(1) });
+            }
+            // If the word was "learned" and is now not, decrement
+            else if (currentMastery >= 4 && newMasteryLevel < 4) {
+                 transaction.update(userRef, { learnedWordsCount: increment(-1) });
+            }
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
     }
-    // Logic for masteryLevel can be added here if needed
-
-    // Use set with merge to create the document if it doesn't exist, and update if it does.
-    return setDoc(progressRef, updates, { merge: true });
 }
+
 
 export const initializeWordProgress = async (db: Firestore, userId: string, wordId: string) => {
     const progressRef = doc(db, "users", userId, "wordProgress", wordId);

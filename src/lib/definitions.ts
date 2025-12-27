@@ -1,6 +1,16 @@
 
 import { z } from "zod";
 
+export const UserProfileSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  displayName: z.string().optional().nullable(),
+  createdAt: z.any(),
+  learnedWordsCount: z.number().default(0),
+});
+export type UserProfile = z.infer<typeof UserProfileSchema>;
+
+
 export const UserWordProgressSchema = z.object({
   id: z.string(),
   masteryLevel: z.number().min(0).max(5).default(0),

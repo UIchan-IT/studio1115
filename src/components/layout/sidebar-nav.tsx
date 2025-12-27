@@ -14,6 +14,7 @@ import {
   FileQuestion,
   Shield,
   Award,
+  Trophy,
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
@@ -163,5 +164,10 @@ const mainNav = [
       href: "/badges",
       label: "Badges",
       icon: Award,
+    },
+    {
+      href: "/ranking",
+      label: "Ranking",
+      icon: Trophy,
     }
   ];
