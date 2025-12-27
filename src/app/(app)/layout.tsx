@@ -9,7 +9,7 @@ import { useUser, useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
@@ -26,7 +26,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     }
 
     // Check if user profile exists, if not create it.
-    // This handles cases where user creation might have failed in the past.
+    // Also ensures totalTestCount is present for existing users.
     const checkAndCreateUserProfile = async () => {
       const userDocRef = doc(firestore, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
@@ -38,9 +38,21 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
             displayName: user.displayName,
             createdAt: serverTimestamp(),
             lastActive: serverTimestamp(),
+            totalTestCount: 0, // Initialize for new profiles
           });
         } catch (error) {
           console.error("Failed to create user profile on-the-fly:", error);
+        }
+      } else {
+        // For existing users, ensure totalTestCount is present
+        if (userDoc.data().totalTestCount === undefined) {
+             try {
+                await updateDoc(userDocRef, {
+                    totalTestCount: 0
+                });
+             } catch (error) {
+                console.error("Failed to add totalTestCount to existing user:", error);
+             }
         }
       }
     };
