@@ -13,6 +13,7 @@ import {
   UserX,
   FileQuestion,
   Shield,
+  Award,
 } from "lucide-react";
 
 import { LexicalLeapLogo } from "../icons";
@@ -158,4 +159,9 @@ const mainNav = [
       label: "Review",
       icon: Target,
     },
+    {
+      href: "/badges",
+      label: "Badges",
+      icon: Award,
+    }
   ];
