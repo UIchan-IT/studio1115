@@ -1,6 +1,8 @@
-# Directories
-node_modules/
+# Build output
 .next/
+
+# Dependencies
+node_modules/
 
 # Lockfiles
 package-lock.json
@@ -8,24 +10,12 @@ yarn.lock
 
 # Environment variables
 .env
-.env.local
-.env.development
-.env.production
 
-# Firebase
+# Firebase rules (user managed)
 firestore.rules
 
-# Documentation
+# Firebase CLI directory
+.firebase/
+
+# Markdown files
 *.md
-
-# Config files
-components.json
-tsconfig.json
-next.config.ts
-apphosting.yaml
-
-# Git
-.gitignore
-
-# This file
-.aiignore
