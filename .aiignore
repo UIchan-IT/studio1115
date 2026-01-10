@@ -1,0 +1,31 @@
+# Directories
+node_modules/
+.next/
+
+# Lockfiles
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Firebase
+firestore.rules
+
+# Documentation
+*.md
+
+# Config files
+components.json
+tsconfig.json
+next.config.ts
+apphosting.yaml
+
+# Git
+.gitignore
+
+# This file
+.aiignore
