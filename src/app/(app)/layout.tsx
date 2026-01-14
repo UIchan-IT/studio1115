@@ -26,34 +26,40 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     }
 
     // Check if user profile exists, if not create it.
-    // Also ensures totalTestCount is present for existing users.
+    // Also ensures fields are present for existing users.
     const checkAndCreateUserProfile = async () => {
-      const userDocRef = doc(firestore, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
+      if (!user?.uid || !firestore) return;
 
-      if (!userDoc.exists()) {
-        try {
-          await setDoc(userDocRef, {
-            email: user.email,
-            displayName: user.displayName,
-            createdAt: serverTimestamp(),
-            lastActive: serverTimestamp(),
-            totalTestCount: 0, // Initialize for new profiles
-          });
-        } catch (error) {
-          console.error("Failed to create user profile on-the-fly:", error);
-        }
-      } else {
-        // For existing users, ensure totalTestCount is present
-        if (userDoc.data().totalTestCount === undefined) {
-             try {
-                await updateDoc(userDocRef, {
-                    totalTestCount: 0
-                });
-             } catch (error) {
-                console.error("Failed to add totalTestCount to existing user:", error);
+      const userDocRef = doc(firestore, "users", user.uid);
+      
+      try {
+          const userDoc = await getDoc(userDocRef);
+
+          if (!userDoc.exists()) {
+              await setDoc(userDocRef, {
+                email: user.email,
+                displayName: user.displayName,
+                createdAt: serverTimestamp(),
+                lastActive: serverTimestamp(),
+                totalTestCount: 0,
+                score: 0,
+              });
+          } else {
+            // For existing users, ensure all fields are present
+            const data = userDoc.data();
+            const updates: any = {};
+            if (data.totalTestCount === undefined) {
+                 updates.totalTestCount = 0;
+            }
+            if (data.score === undefined) {
+                 updates.score = 0;
+            }
+             if (Object.keys(updates).length > 0) {
+                await updateDoc(userDocRef, updates);
              }
-        }
+          }
+      } catch (error) {
+          console.error("Failed to check/create user profile:", error);
       }
     };
 

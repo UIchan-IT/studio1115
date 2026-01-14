@@ -36,6 +36,10 @@
         "totalTestCount": {
           "type": "number",
           "description": "The total number of tests the user has taken across all words."
+        },
+        "score": {
+          "type": "number",
+          "description": "The user's total score from correct answers."
         }
       },
       "required": ["email", "createdAt"]

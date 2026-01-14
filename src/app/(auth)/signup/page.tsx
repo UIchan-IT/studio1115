@@ -62,6 +62,7 @@ export default function SignupPage() {
         displayName: user.displayName,
         createdAt: serverTimestamp(),
         totalTestCount: 0,
+        score: 0,
       });
       
       toast({

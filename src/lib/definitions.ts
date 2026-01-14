@@ -7,6 +7,7 @@ export const UserProfileSchema = z.object({
   displayName: z.string().optional().nullable(),
   createdAt: z.any(),
   totalTestCount: z.number().default(0),
+  score: z.number().default(0),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 

@@ -92,8 +92,14 @@ export const updateWordStats = async (db: Firestore, userId: string, wordId: str
 
             transaction.set(progressRef, updates, { merge: true });
             
-            // Always increment total test count for the user
-            transaction.update(userRef, { totalTestCount: increment(1) });
+            // Increment total test count and score for the user
+            const userUpdate: { totalTestCount: any, score?: any } = {
+                totalTestCount: increment(1)
+            };
+            if (isCorrect) {
+                userUpdate.score = increment(1);
+            }
+            transaction.update(userRef, userUpdate);
         });
     } catch (e) {
         console.error("Transaction failed: ", e);
@@ -117,10 +123,13 @@ export const initializeWordProgress = async (db: Firestore, userId: string, word
         lastReviewed: null,
     }, { merge: true });
 
-    // Also initialize totalTestCount on the user profile if it doesn't exist
+    // Also initialize totalTestCount/score on the user profile if it doesn't exist
     const userDoc = await getDoc(userRef);
-    if (!userDoc.exists() || !userDoc.data()?.totalTestCount) {
+    if (!userDoc.exists() || userDoc.data()?.totalTestCount === undefined) {
         await setDoc(userRef, { totalTestCount: 0 }, { merge: true });
+    }
+    if (!userDoc.exists() || userDoc.data()?.score === undefined) {
+        await setDoc(userRef, { score: 0 }, { merge: true });
     }
 };
 

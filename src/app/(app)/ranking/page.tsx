@@ -4,7 +4,7 @@
 import { useCollection } from "@/firebase";
 import type { UserProfile } from "@/lib/definitions";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Medal, ChevronDown, ChevronUp } from "lucide-react";
+import { Trophy, Medal } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -31,7 +31,7 @@ export default function RankingPage() {
     const { data: users, loading: usersLoading } = useCollection<UserProfile>('users');
     
     const rankedUsers = useMemo(() => {
-        return [...users].sort((a, b) => (b.totalTestCount ?? 0) - (a.totalTestCount ?? 0));
+        return [...users].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     }, [users]);
 
     if (usersLoading) {
@@ -58,7 +58,7 @@ export default function RankingPage() {
                     Leaderboard
                 </h1>
                 <p className="text-muted-foreground">
-                    See who is leading the charge in vocabulary mastery.
+                    See who has the highest score in vocabulary mastery.
                 </p>
             </header>
             
@@ -69,7 +69,7 @@ export default function RankingPage() {
                             <TableRow>
                                 <TableHead className="w-[80px] text-center">Rank</TableHead>
                                 <TableHead>User</TableHead>
-                                <TableHead className="text-right">Words Tested</TableHead>
+                                <TableHead className="text-right">Score</TableHead>
                             </TableRow>
                         </TableHeader>
                          <TableBody>
@@ -91,7 +91,7 @@ export default function RankingPage() {
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right font-bold text-lg">{user.totalTestCount ?? 0}</TableCell>
+                                        <TableCell className="text-right font-bold text-lg">{user.score ?? 0}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
