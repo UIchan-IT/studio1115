@@ -48,6 +48,7 @@ export const StatsSchema = z.object({
     totalWords: z.number(),
     wordsLearned: z.number(),
     needsReview: z.number(),
+    score: z.number(),
 });
 
 export type Stats = z.infer<typeof StatsSchema>;

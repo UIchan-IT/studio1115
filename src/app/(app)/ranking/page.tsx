@@ -31,7 +31,7 @@ export default function RankingPage() {
     const { data: users, loading: usersLoading } = useCollection<UserProfile>('users');
     
     const rankedUsers = useMemo(() => {
-        return [...users].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+        return [...users].sort((a, b) => (b.totalTestCount ?? 0) - (a.totalTestCount ?? 0));
     }, [users]);
 
     if (usersLoading) {
@@ -58,7 +58,7 @@ export default function RankingPage() {
                     Leaderboard
                 </h1>
                 <p className="text-muted-foreground">
-                    See who has the highest score in vocabulary mastery.
+                    See who has tested the most words.
                 </p>
             </header>
             
@@ -69,7 +69,7 @@ export default function RankingPage() {
                             <TableRow>
                                 <TableHead className="w-[80px] text-center">Rank</TableHead>
                                 <TableHead>User</TableHead>
-                                <TableHead className="text-right">Score</TableHead>
+                                <TableHead className="text-right">Words Tested</TableHead>
                             </TableRow>
                         </TableHeader>
                          <TableBody>
@@ -91,7 +91,7 @@ export default function RankingPage() {
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right font-bold text-lg">{user.score ?? 0}</TableCell>
+                                        <TableCell className="text-right font-bold text-lg">{user.totalTestCount ?? 0}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (

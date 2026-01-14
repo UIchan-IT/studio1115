@@ -9,23 +9,31 @@ import {
 } from 'firebase/firestore';
 import { useFirestore } from '../provider';
 
+interface UseDocOptions {
+  skip?: boolean;
+}
+
 export function useDoc<T extends DocumentData>(
   collectionName: string,
-  docId: string
+  docId: string,
+  options: UseDocOptions = {}
 ) {
   const firestore = useFirestore();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  const { skip } = options;
 
   const memoizedDocRef = useMemo(() => {
-    if (!firestore || !collectionName || !docId) return null;
+    if (skip || !firestore || !collectionName || !docId) return null;
     return doc(firestore, collectionName, docId);
-  }, [firestore, collectionName, docId]);
+  }, [firestore, collectionName, docId, skip]);
 
 
   useEffect(() => {
     if (!memoizedDocRef) {
+        setData(null);
         setLoading(false);
         return;
     };

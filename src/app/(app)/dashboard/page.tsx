@@ -1,7 +1,7 @@
 "use client";
 
-import { useCollection, useUser } from "@/firebase";
-import type { Stats, WordList, Word, UserWordProgress } from "@/lib/definitions";
+import { useCollection, useDoc, useUser } from "@/firebase";
+import type { Stats, WordList, Word, UserWordProgress, UserProfile } from "@/lib/definitions";
 import StatsCards from "@/components/dashboard/stats-cards";
 import WordLists from "@/components/dashboard/word-lists";
 import { useMemo } from "react";
@@ -16,9 +16,9 @@ interface WordListWithWords extends WordList {
   words: Word[];
 }
 
-function calculateStats(wordLists: WordListWithWords[], allProgress: UserWordProgress[]): Stats {
+function calculateStats(wordLists: WordListWithWords[], allProgress: UserWordProgress[], userProfile: UserProfile | null): Stats {
   if (!wordLists || !allProgress) {
-    return { totalWords: 0, wordsLearned: 0, needsReview: 0 };
+    return { totalWords: 0, wordsLearned: 0, needsReview: 0, score: 0 };
   }
   
   const allWords = wordLists.flatMap(list => list.words || []);
@@ -32,14 +32,17 @@ function calculateStats(wordLists: WordListWithWords[], allProgress: UserWordPro
   const totalWords = wordsWithProgress.length;
   const wordsLearned = wordsWithProgress.filter(word => word.progress && word.progress.masteryLevel >= 4).length;
   const needsReview = wordsWithProgress.filter(word => word.progress && word.progress.masteryLevel > 0 && word.progress.masteryLevel < 4).length;
+  const score = userProfile?.score ?? 0;
   
-  return { totalWords, wordsLearned, needsReview };
+  return { totalWords, wordsLearned, needsReview, score };
 }
 
 
 export default function DashboardPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
+  
+  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>('users', user?.uid ?? '');
   
   const { data: myWordListsData, loading: myListsLoading } = useCollection<WordList>(
     "wordLists",
@@ -92,11 +95,11 @@ export default function DashboardPage() {
 
 
   const stats = useMemo(() => {
-    if (!user) return { totalWords: 0, wordsLearned: 0, needsReview: 0 };
+    if (!user) return { totalWords: 0, wordsLearned: 0, needsReview: 0, score: 0 };
     // Only calculate stats for the user's own lists
     const myListsWithWords = wordListsWithWords.filter(l => l.ownerId === user?.uid);
-    return calculateStats(myListsWithWords, userProgressData);
-  }, [wordListsWithWords, userProgressData, user]);
+    return calculateStats(myListsWithWords, userProgressData, userProfile);
+  }, [wordListsWithWords, userProgressData, user, userProfile]);
 
   const weakWords = useMemo(() => {
     if (!userProgressData || wordListsWithWords.length === 0) return [];
@@ -114,7 +117,7 @@ export default function DashboardPage() {
       .slice(0, 10);
   }, [wordListsWithWords, userProgressData]);
   
-  const isLoading = userLoading || myListsLoading || publicListsLoading || wordsLoading || progressLoading;
+  const isLoading = userLoading || myListsLoading || publicListsLoading || wordsLoading || progressLoading || profileLoading;
 
   if (isLoading) {
     return (
@@ -124,7 +127,8 @@ export default function DashboardPage() {
              <Skeleton className="h-9 w-64 mb-2" />
              <Skeleton className="h-5 w-80" />
            </header>
-           <div className="grid gap-4 md:grid-cols-3">
+           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Skeleton className="h-24" />
               <Skeleton className="h-24" />
               <Skeleton className="h-24" />
               <Skeleton className="h-24" />
