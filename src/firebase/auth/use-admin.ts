@@ -10,7 +10,8 @@ export function useAdmin() {
   const { user } = useUser();
   const { data: adminDoc, loading } = useDoc(
     'admins',
-    user?.uid || ' ' // Use a placeholder if user is not available to prevent hook error
+    user?.uid,
+    { skip: !user } // Skip the query if there is no user.
   );
 
   const isAdmin = !!adminDoc;
