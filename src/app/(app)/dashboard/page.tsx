@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useCollection, useDoc, useUser } from "@/firebase";
@@ -42,7 +43,7 @@ export default function DashboardPage() {
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
   
-  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>('users', user?.uid ?? '');
+  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>('users', user?.uid ?? '', { skip: !user });
   
   const { data: myWordListsData, loading: myListsLoading } = useCollection<WordList>(
     "wordLists",
