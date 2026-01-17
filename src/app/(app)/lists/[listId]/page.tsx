@@ -1,3 +1,4 @@
+
 "use client";
 
 import WordListHeader from "@/components/word-lists/word-list-header";
@@ -13,8 +14,8 @@ export default function WordListPage() {
   const listId = params.listId as string;
   const { user } = useUser();
 
-  const { data: wordList, loading: listLoading } = useDoc<WordList>("wordLists", listId);
-  const { data: wordsData, loading: wordsLoading } = useCollection<Word>(`wordLists/${listId}/words`);
+  const { data: wordList, loading: listLoading } = useDoc<WordList>("wordLists", listId, { skip: !user });
+  const { data: wordsData, loading: wordsLoading } = useCollection<Word>(`wordLists/${listId}/words`, { skip: !user });
   const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(
     user ? `users/${user.uid}/wordProgress` : "",
     { skip: !user }

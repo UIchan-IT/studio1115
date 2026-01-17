@@ -70,7 +70,7 @@ export default function ReviewPage() {
   }, [user, firestore, userLoading]);
 
   useEffect(() => {
-    if (allWordLists.length > 0 && firestore) {
+    if (allWordLists.length > 0 && firestore && user) {
       const fetchAllWords = async () => {
         setWordsLoading(true);
         const listsWithWords = await Promise.all(allWordLists.map(async (list) => {
@@ -86,7 +86,7 @@ export default function ReviewPage() {
       setWordListsWithWords([]);
       setWordsLoading(false);
     }
-  }, [allWordLists, firestore, listsLoading]);
+  }, [allWordLists, firestore, listsLoading, user]);
 
   const weakWords = useMemo(() => {
     if (!userProgressData || wordListsWithWords.length === 0) return [];

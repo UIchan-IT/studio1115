@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useCollection } from "@/firebase";
+import { useCollection, useUser } from "@/firebase";
 import type { UserProfile } from "@/lib/definitions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Medal } from "lucide-react";
@@ -28,7 +28,8 @@ const RankIndicator = ({ rank }: { rank: number }) => {
 
 
 export default function RankingPage() {
-    const { data: users, loading: usersLoading } = useCollection<UserProfile>('users');
+    const { user } = useUser();
+    const { data: users, loading: usersLoading } = useCollection<UserProfile>('users', { skip: !user });
     
     const rankedUsers = useMemo(() => {
         return [...users].sort((a, b) => (b.totalTestCount ?? 0) - (a.totalTestCount ?? 0));

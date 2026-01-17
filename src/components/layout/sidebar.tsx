@@ -1,3 +1,4 @@
+
 "use client";
 
 import SidebarNav from "./sidebar-nav";
@@ -39,7 +40,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
 
   const { data: publicWordLists, loading: publicListsLoading } = useCollection<WordList>(
     "wordLists",
-    { whereClauses: [["isPublic", "==", true]] }
+    { whereClauses: [["isPublic", "==", true]], skip: !user }
   );
 
   const allWordLists = useMemo(() => {
