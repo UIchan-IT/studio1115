@@ -10,7 +10,7 @@ export function useAdmin() {
   const { user } = useUser();
   const { data: adminDoc, loading } = useDoc(
     'admins',
-    user?.uid,
+    user?.uid ?? '', // Ensure docId is always a string
     { skip: !user } // Skip the query if there is no user.
   );
 
