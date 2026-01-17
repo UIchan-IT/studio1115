@@ -29,7 +29,7 @@ export function useCollection<T extends DocumentData>(
   const { whereClauses, skip } = options;
 
   const memoizedQuery = useMemo(() => {
-    if (skip) return null;
+    if (skip || !collectionName) return null;
     let q: Query<DocumentData, DocumentData> = collection(firestore, collectionName);
     if (whereClauses) {
       whereClauses.forEach(([field, op, value]) => {
