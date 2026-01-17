@@ -1,4 +1,3 @@
-
 "use client";
 
 import SidebarNav from "./sidebar-nav";
@@ -57,7 +56,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
 
   useEffect(() => {
     const listsLoading = myListsLoading || publicListsLoading;
-    if (allWordLists.length > 0 && firestore) {
+    if (allWordLists.length > 0 && firestore && user) {
       const fetchAllWords = async () => {
         setWordsLoading(true);
         const listsWithWords = await Promise.all(allWordLists.map(async (list) => {
@@ -73,7 +72,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
       setWordListsWithWords([]);
       setWordsLoading(false);
     }
-  }, [allWordLists, firestore, myListsLoading, publicListsLoading]);
+  }, [allWordLists, firestore, myListsLoading, publicListsLoading, user]);
 
   const allWords = useMemo(() => {
       return wordListsWithWords.flatMap(list => list.words || []);
