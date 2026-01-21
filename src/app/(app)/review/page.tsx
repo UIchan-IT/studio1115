@@ -4,7 +4,7 @@
 import { useUser, useFirestore, useCollection } from "@/firebase";
 import type { UserWordProgress, Word, WordList } from "@/lib/definitions";
 import { useMemo, useState, useEffect } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Target, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -28,48 +28,38 @@ export default function ReviewPage() {
   const [wordListsWithWords, setWordListsWithWords] = useState<WordListWithWords[]>([]);
   const [wordsLoading, setWordsLoading] = useState(true);
   
-  const [allWordLists, setAllWordLists] = useState<WordList[]>([]);
-  const [listsLoading, setListsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const wordsPerPage = 5;
 
+  const { data: myWordListsData, loading: myListsLoading } = useCollection<WordList>(
+    "wordLists",
+    user ? { whereClauses: [["ownerId", "==", user.uid]] } : { skip: true }
+  );
+
+  const { data: publicWordListsData, loading: publicListsLoading } = useCollection<WordList>(
+    "wordLists",
+    { whereClauses: [["isPublic", "==", true]], skip: !user }
+  );
+  
   const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(
     user ? `users/${user.uid}/wordProgress` : "",
     { skip: !user }
   );
 
-  useEffect(() => {
-    if (user && firestore) {
-      const fetchLists = async () => {
-        setListsLoading(true);
-        const myListsQuery = query(collection(firestore, "wordLists"), where("ownerId", "==", user.uid));
-        const publicListsQuery = query(collection(firestore, "wordLists"), where("isPublic", "==", true));
-
-        const [myListsSnapshot, publicListsSnapshot] = await Promise.all([
-          getDocs(myListsQuery),
-          getDocs(publicListsQuery),
-        ]);
-
-        const myLists = myListsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WordList));
-        const publicLists = publicListsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WordList));
-
-        const combined = [...myLists];
-        const myIds = new Set(myLists.map(l => l.id));
-        publicLists.forEach(publicList => {
-          if (!myIds.has(publicList.id)) {
-            combined.push(publicList);
-          }
-        });
-        setAllWordLists(combined);
-        setListsLoading(false);
+  const allWordLists = useMemo(() => {
+    const combined = [...myWordListsData];
+    const myIds = new Set(myWordListsData.map(l => l.id));
+    publicWordListsData.forEach(publicList => {
+      if (!myIds.has(publicList.id)) {
+        combined.push(publicList);
       }
-      fetchLists();
-    } else if (!userLoading) {
-      setListsLoading(false);
-    }
-  }, [user, firestore, userLoading]);
+    });
+    return combined;
+  }, [myWordListsData, publicWordListsData]);
+
 
   useEffect(() => {
+    const listsLoading = myListsLoading || publicListsLoading;
     if (allWordLists.length > 0 && firestore && user) {
       const fetchAllWords = async () => {
         setWordsLoading(true);
@@ -86,7 +76,8 @@ export default function ReviewPage() {
       setWordListsWithWords([]);
       setWordsLoading(false);
     }
-  }, [allWordLists, firestore, listsLoading, user]);
+  }, [allWordLists, firestore, myListsLoading, publicListsLoading, user]);
+
 
   const weakWords = useMemo(() => {
     if (!userProgressData || wordListsWithWords.length === 0) return [];
@@ -109,7 +100,7 @@ export default function ReviewPage() {
     currentPage * wordsPerPage
   );
 
-  const isLoading = userLoading || listsLoading || wordsLoading || progressLoading;
+  const isLoading = userLoading || myListsLoading || publicListsLoading || wordsLoading || progressLoading;
 
   if (isLoading) {
     return (
