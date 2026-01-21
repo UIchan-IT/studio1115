@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -34,7 +35,7 @@ export function useDoc<T extends DocumentData>(
   useEffect(() => {
     if (!memoizedDocRef) {
         setData(null);
-        setLoading(false);
+        setLoading(true); // If skipped, remain in a loading state
         return;
     };
 

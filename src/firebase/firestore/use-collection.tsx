@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -45,7 +46,7 @@ export function useCollection<T extends DocumentData>(
   useEffect(() => {
     if (!memoizedQuery) {
       setData([]);
-      setLoading(false);
+      setLoading(true); // If skipped, remain in a loading state
       return;
     }
 
