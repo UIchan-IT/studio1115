@@ -16,8 +16,8 @@ export default function MatchingQuizPage() {
   const listId = params.listId as string;
   const { user, loading: userLoading } = useUser();
 
-  const { data: wordList, loading: listLoading } = useDoc<WordList>("wordLists", listId, { skip: userLoading });
-  const { data: wordsData, loading: wordsLoading } = useCollection<Word>(`wordLists/${listId}/words`, { skip: userLoading });
+  const { data: wordList, loading: listLoading } = useDoc<WordList>("wordLists", listId, { skip: userLoading || !user });
+  const { data: wordsData, loading: wordsLoading } = useCollection<Word>(`wordLists/${listId}/words`, { skip: userLoading || !user });
   const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(
     user ? `users/${user.uid}/wordProgress` : "",
     { skip: userLoading || !user }

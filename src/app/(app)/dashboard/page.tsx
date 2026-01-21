@@ -52,7 +52,7 @@ export default function DashboardPage() {
   
   const { data: publicWordListsData, loading: publicListsLoading } = useCollection<WordList>(
     "wordLists",
-    { whereClauses: [["isPublic", "==", true]], skip: userLoading }
+    { whereClauses: [["isPublic", "==", true]], skip: userLoading || !user }
   );
   
   const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(

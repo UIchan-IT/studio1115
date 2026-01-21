@@ -40,7 +40,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
 
   const { data: publicWordLists, loading: publicListsLoading } = useCollection<WordList>(
     "wordLists",
-    { whereClauses: [["isPublic", "==", true]], skip: userLoading }
+    { whereClauses: [["isPublic", "==", true]], skip: userLoading || !user }
   );
 
   const allWordLists = useMemo(() => {
@@ -57,7 +57,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
 
   useEffect(() => {
     const listsLoading = myListsLoading || publicListsLoading;
-    if (allWordLists.length > 0 && firestore && !userLoading) {
+    if (allWordLists.length > 0 && firestore && !userLoading && user) {
       const fetchAllWords = async () => {
         setWordsLoading(true);
         const listsWithWords = await Promise.all(allWordLists.map(async (list) => {
@@ -73,7 +73,7 @@ export default function AppSidebar({ isMobile = false }: { isMobile?: boolean })
       setWordListsWithWords([]);
       setWordsLoading(false);
     }
-  }, [allWordLists, firestore, myListsLoading, publicListsLoading, userLoading]);
+  }, [allWordLists, firestore, myListsLoading, publicListsLoading, userLoading, user]);
 
   const allWords = useMemo(() => {
       return wordListsWithWords.flatMap(list => list.words || []);

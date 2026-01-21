@@ -29,7 +29,7 @@ const RankIndicator = ({ rank }: { rank: number }) => {
 
 export default function RankingPage() {
     const { user, loading: userLoading } = useUser();
-    const { data: users, loading: usersLoading } = useCollection<UserProfile>('users', { skip: userLoading });
+    const { data: users, loading: usersLoading } = useCollection<UserProfile>('users', { skip: userLoading || !user });
     
     const rankedUsers = useMemo(() => {
         return [...users].sort((a, b) => (b.totalTestCount ?? 0) - (a.totalTestCount ?? 0));
