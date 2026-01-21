@@ -26,7 +26,7 @@ import { formatDistanceToNow } from 'date-fns';
 export default function AdminPage() {
     const router = useRouter();
     const { isAdmin, loading: adminLoading } = useAdmin();
-    const { data: users, loading: usersLoading } = useCollection<UserProfile>('users', { skip: !isAdmin });
+    const { data: users, loading: usersLoading } = useCollection<UserProfile>('users', { skip: adminLoading || !isAdmin });
 
     useEffect(() => {
         if (!adminLoading && !isAdmin) {

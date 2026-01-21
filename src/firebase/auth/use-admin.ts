@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from './use-user';
@@ -7,14 +8,14 @@ import { useDoc } from '../firestore/use-doc';
 // It checks for the existence of a document in the /admins collection
 // with the same ID as the user's UID.
 export function useAdmin() {
-  const { user } = useUser();
-  const { data: adminDoc, loading } = useDoc(
+  const { user, loading: userLoading } = useUser();
+  const { data: adminDoc, loading: docLoading } = useDoc(
     'admins',
     user?.uid ?? '', // Ensure docId is always a string
-    { skip: !user || !user.uid } // Skip if user or uid is not available.
+    { skip: userLoading || !user } // Skip if user is loading or not available
   );
 
   const isAdmin = !!adminDoc;
 
-  return { isAdmin, loading };
+  return { isAdmin, loading: userLoading || docLoading };
 }

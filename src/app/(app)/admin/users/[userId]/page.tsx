@@ -29,8 +29,8 @@ export default function UserDetailPage() {
     const router = useRouter();
     const { isAdmin, loading: adminLoading } = useAdmin();
 
-    const { data: userProfile, loading: userLoading } = useDoc<UserProfile>('users', userId);
-    const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(`users/${userId}/wordProgress`);
+    const { data: userProfile, loading: userProfileLoading } = useDoc<UserProfile>('users', userId, { skip: adminLoading });
+    const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(`users/${userId}/wordProgress`, { skip: adminLoading });
     
     const [allWords, setAllWords] = useState<Word[]>([]);
     const [wordsLoading, setWordsLoading] = useState(true);
@@ -45,7 +45,7 @@ export default function UserDetailPage() {
 
     useEffect(() => {
         const fetchAllWords = async () => {
-            if (!firestore) return;
+            if (!firestore || adminLoading) return;
             setWordsLoading(true);
             const wordListsSnapshot = await getDocs(collection(firestore, 'wordLists'));
             const wordsData: Word[] = [];
@@ -59,7 +59,7 @@ export default function UserDetailPage() {
             setWordsLoading(false);
         };
         fetchAllWords();
-    }, [firestore]);
+    }, [firestore, adminLoading]);
 
 
     const weakWords = useMemo(() => {
@@ -78,7 +78,7 @@ export default function UserDetailPage() {
     }, [allWords, userProgressData]);
 
 
-    const isLoading = adminLoading || userLoading || progressLoading || wordsLoading;
+    const isLoading = adminLoading || userProfileLoading || progressLoading || wordsLoading;
     
     if (isLoading) {
         return (

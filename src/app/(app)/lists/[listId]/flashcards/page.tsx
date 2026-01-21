@@ -15,13 +15,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function FlashcardsPage() {
   const params = useParams();
   const listId = params.listId as string;
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
 
-  const { data: wordList, loading: listLoading } = useDoc<WordList>("wordLists", listId, { skip: !user });
-  const { data: wordsData, loading: wordsLoading } = useCollection<Word>(`wordLists/${listId}/words`, { skip: !user });
+  const { data: wordList, loading: listLoading } = useDoc<WordList>("wordLists", listId, { skip: userLoading });
+  const { data: wordsData, loading: wordsLoading } = useCollection<Word>(`wordLists/${listId}/words`, { skip: userLoading });
   const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(
     user ? `users/${user.uid}/wordProgress` : "",
-    { skip: !user }
+    { skip: userLoading || !user }
   );
 
   const words = useMemo(() => {
@@ -34,7 +34,7 @@ export default function FlashcardsPage() {
   }, [wordsData, userProgressData]);
 
 
-  const isLoading = listLoading || wordsLoading || progressLoading;
+  const isLoading = userLoading || listLoading || wordsLoading || progressLoading;
 
   if (isLoading) {
      return (

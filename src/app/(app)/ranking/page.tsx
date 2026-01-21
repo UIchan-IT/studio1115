@@ -28,14 +28,14 @@ const RankIndicator = ({ rank }: { rank: number }) => {
 
 
 export default function RankingPage() {
-    const { user } = useUser();
-    const { data: users, loading: usersLoading } = useCollection<UserProfile>('users', { skip: !user });
+    const { user, loading: userLoading } = useUser();
+    const { data: users, loading: usersLoading } = useCollection<UserProfile>('users', { skip: userLoading });
     
     const rankedUsers = useMemo(() => {
         return [...users].sort((a, b) => (b.totalTestCount ?? 0) - (a.totalTestCount ?? 0));
     }, [users]);
 
-    if (usersLoading) {
+    if (userLoading || usersLoading) {
         return (
              <div className="container mx-auto space-y-6">
                 <header>

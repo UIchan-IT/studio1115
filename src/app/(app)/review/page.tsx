@@ -33,17 +33,17 @@ export default function ReviewPage() {
 
   const { data: myWordListsData, loading: myListsLoading } = useCollection<WordList>(
     "wordLists",
-    user ? { whereClauses: [["ownerId", "==", user.uid]] } : { skip: true }
+    { whereClauses: [["ownerId", "==", user?.uid]], skip: userLoading || !user }
   );
 
   const { data: publicWordListsData, loading: publicListsLoading } = useCollection<WordList>(
     "wordLists",
-    { whereClauses: [["isPublic", "==", true]], skip: !user }
+    { whereClauses: [["isPublic", "==", true]], skip: userLoading }
   );
   
   const { data: userProgressData, loading: progressLoading } = useCollection<UserWordProgress>(
     user ? `users/${user.uid}/wordProgress` : "",
-    { skip: !user }
+    { skip: userLoading || !user }
   );
 
   const allWordLists = useMemo(() => {
@@ -60,7 +60,7 @@ export default function ReviewPage() {
 
   useEffect(() => {
     const listsLoading = myListsLoading || publicListsLoading;
-    if (allWordLists.length > 0 && firestore && user) {
+    if (allWordLists.length > 0 && firestore && !userLoading) {
       const fetchAllWords = async () => {
         setWordsLoading(true);
         const listsWithWords = await Promise.all(allWordLists.map(async (list) => {
@@ -72,11 +72,11 @@ export default function ReviewPage() {
         setWordsLoading(false);
       };
       fetchAllWords();
-    } else if (!listsLoading) {
+    } else if (!listsLoading && !userLoading) {
       setWordListsWithWords([]);
       setWordsLoading(false);
     }
-  }, [allWordLists, firestore, myListsLoading, publicListsLoading, user]);
+  }, [allWordLists, firestore, myListsLoading, publicListsLoading, userLoading]);
 
 
   const weakWords = useMemo(() => {
